@@ -1,0 +1,3456 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Box 11 Trade Manager</title>
+    <style>
+      :root {
+        --bg: #f4f6f9;
+        --card: #fff;
+        --ink: #182230;
+        --muted: #637083;
+        --line: #dce2ea;
+        --blue: #175cd3;
+        --green: #067647;
+        --red: #b42318;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.45 Arial,
+          Helvetica,
+          sans-serif;
+      }
+      header {
+        background: linear-gradient(120deg, #10213d, #184b83);
+        color: white;
+        padding: 24px clamp(16px, 4vw, 40px);
+        box-shadow: 0 4px 16px #10213d20;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 27px;
+        letter-spacing: -0.4px;
+      }
+      header p {
+        margin: 7px 0 0;
+        color: #d3def0;
+      }
+      main {
+        max-width: 1400px;
+        margin: auto;
+        padding: 18px;
+      }
+      nav {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      button,
+      .btn {
+        border: 0;
+        border-radius: 8px;
+        padding: 10px 13px;
+        cursor: pointer;
+        font-weight: 700;
+        background: #e7edf5;
+        color: #172b4d;
+      }
+      nav button.active,
+      .primary {
+        background: var(--blue);
+        color: white;
+      }
+      button.danger {
+        background: #fee4e2;
+        color: #912018;
+      }
+      button.small {
+        padding: 6px 9px;
+        font-size: 12px;
+      }
+      .panel {
+        display: none;
+      }
+      .panel.active {
+        display: block;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 6px #14213d08;
+      }
+      h2 {
+        margin: 0 0 13px;
+        font-size: 20px;
+      }
+      h3 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .metric {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 3px 12px #14213d08;
+      }
+      .dashboard-hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        background: linear-gradient(135deg, #fff, #f0f6ff);
+        border-color: #d5e3f7;
+      }
+      .dashboard-hero h2 {
+        font-size: 25px;
+        margin: 5px 0;
+      }
+      .eyebrow {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        color: #175cd3;
+      }
+      .quick-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .section-heading {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 18px 2px 10px;
+      }
+      .section-heading h2 {
+        margin: 0;
+      }
+      .app-error {
+        display: none;
+        border: 1px solid #fda29b;
+        background: #fff1f0;
+        color: #912018;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 14px;
+        white-space: pre-wrap;
+      }
+      .metric .label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .metric .value {
+        font-size: 22px;
+        font-weight: 800;
+        margin-top: 6px;
+        overflow-wrap: anywhere;
+      }
+      .metric .sub {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 3px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 5px;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border: 1px solid #c7d0dd;
+        border-radius: 7px;
+        padding: 10px;
+        font: inherit;
+        background: white;
+        color: var(--ink);
+      }
+      textarea {
+        min-height: 70px;
+      }
+      form .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      .table-wrap {
+        overflow: auto;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 13px;
+        min-width: 700px;
+      }
+      th,
+      td {
+        text-align: left;
+        border-bottom: 1px solid var(--line);
+        padding: 9px;
+        vertical-align: top;
+      }
+      th {
+        background: #f0f4f8;
+        position: sticky;
+        top: 0;
+      }
+      td.actions {
+        white-space: nowrap;
+      }
+      .notice {
+        border-radius: 8px;
+        padding: 12px;
+        background: #eff8ff;
+        color: #1849a9;
+        margin-bottom: 14px;
+      }
+      .warn {
+        background: #fffaeb;
+        color: #93370d;
+      }
+      .success {
+        background: #ecfdf3;
+        color: #05603a;
+      }
+      .empty {
+        padding: 18px;
+        text-align: center;
+        color: var(--muted);
+      }
+      @media (max-width: 850px) {
+        .metrics {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .dashboard-hero {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .quick-actions {
+          justify-content: flex-start;
+        }
+      }
+      @media (max-width: 560px) {
+        main {
+          padding: 10px;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .metrics {
+          grid-template-columns: 1fr 1fr;
+        }
+        header h1 {
+          font-size: 21px;
+        }
+        .metric .value {
+          font-size: 18px;
+        }
+        nav button {
+          flex: 1;
+        }
+        .section-heading {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .quick-actions button {
+          flex: 1;
+        }
+      }
+
+      #userBar {
+        display: none;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
+        padding: 8px clamp(16px, 4vw, 40px);
+        background: #0b1830;
+        color: #d3def0;
+        font-size: 13px;
+      }
+      #userBar button {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+      #syncState {
+        opacity: 0.8;
+      }
+
+      .sale-table {
+        min-width: 900px;
+      }
+      .sale-table td {
+        padding: 6px;
+        vertical-align: middle;
+      }
+      .sale-table select {
+        min-width: 170px;
+      }
+      .sale-table input {
+        min-width: 80px;
+        padding: 8px;
+      }
+      .sale-table td.num,
+      td.num,
+      th.num {
+        text-align: right;
+        white-space: nowrap;
+      }
+      .sale-table tfoot td {
+        font-weight: 700;
+        border-top: 1px solid var(--line);
+      }
+      .sale-table tfoot tr.grand td {
+        font-size: 15px;
+        background: #f0f4f8;
+      }
+      tr.total-row td {
+        font-weight: 800;
+        background: #f0f4f8;
+      }
+      .ro-hidden {
+        display: none !important;
+      }
+      .panel.ro td.actions button {
+        display: none;
+      }
+      .panel.lock {
+        pointer-events: none;
+        opacity: 0.75;
+      }
+      .user-card .uhead {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+      }
+      .user-card .uhead select {
+        width: auto;
+      }
+      .user-card .ugrid {
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      }
+      .tag {
+        display: inline-block;
+        border-radius: 99px;
+        padding: 2px 9px;
+        font-size: 11px;
+        font-weight: 800;
+        background: #fef0c7;
+        color: #93370d;
+      }
+      .pw-row{display:flex;gap:6px}
+      .pw-row input{flex:1}
+      .tag.off{background:#fee4e2;color:#912018}
+      #newUserCard{border-color:#b2ccff;background:#f5f9ff}
+      @media print {
+        header,
+        nav,
+        #userBar,
+        .no-print,
+        .panel {
+          display: none !important;
+        }
+        #reports {
+          display: block !important;
+        }
+        #reports .card:first-child {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loginBox" style="display:none;position:fixed;inset:0;z-index:999;background:linear-gradient(120deg,#10213d,#184b83);align-items:center;justify-content:center;padding:16px">
+      <form id="loginForm" class="card" style="width:100%;max-width:380px;margin:0">
+        <h2>📦 Box 11 Trade Manager</h2>
+        <p class="muted">Sign in with your username and password.</p>
+        <label>Username</label><input id="lgUser" autocomplete="username" autocapitalize="none" required />
+        <label style="margin-top:10px">Password</label><input id="lgPass" type="password" autocomplete="current-password" required />
+        <div id="loginErr" class="notice warn" style="display:none;margin:12px 0 0"></div>
+        <div class="actions"><button class="primary" style="width:100%">Sign in</button></div>
+      </form>
+    </div>
+    <div id="userBar">
+      <span id="syncState">Loading…</span><span id="userEmail"></span><button id="btnLogout">Sign out</button>
+    </div>
+    <header>
+      <h1>📦 Box 11 Trade Manager</h1>
+      <p>Product Management · Purchases · Sales · Stock · Expenses & Profit</p>
+    </header>
+    <main>
+      <div class="notice">
+        <b>Fresh start:</b> this file opens with a blank product and transaction list. Your previous file is
+        not changed. Data you enter here is saved to your account. Use Backup / Restore regularly.
+      </div>
+      <div id="appError" class="app-error" role="alert"></div>
+      <nav id="nav">
+        <button class="active" data-tab="dashboard">Dashboard</button
+        ><button data-tab="products">Products</button><button data-tab="shipments">Purchases</button
+        ><button data-tab="stock">Stock</button><button data-tab="sales">Sales</button
+        ><button data-tab="expenses">Expenses & Profit</button><button data-tab="reports">Reports</button
+        ><button data-tab="settings">Settings</button><button data-tab="customize">Customize Software</button
+        ><button data-tab="backup">Backup / Restore</button>
+      </nav>
+
+      <section id="dashboard" class="panel active">
+        <div class="card dashboard-hero">
+          <div>
+            <div class="eyebrow">BOX 11 · TRADE OVERVIEW</div>
+            <h2>Business Dashboard</h2>
+            <p class="muted">
+              A fresh workspace for your products, purchases, stock, sales and profit. THB is the default
+              currency; INR and USD are also available.
+            </p>
+          </div>
+          <div class="quick-actions">
+            <button type="button" class="primary" data-go-tab="products">+ Add Product</button>
+            <button type="button" data-go-tab="shipments">+ Record Purchase</button>
+            <button type="button" data-go-tab="sales">+ Record Sale</button>
+          </div>
+        </div>
+        <div class="section-heading">
+          <h2>Key Numbers</h2>
+          <span class="muted">Updates when you save a transaction</span>
+        </div>
+        <div class="metrics" id="metrics"></div>
+        <div class="card">
+          <h2>Profit by Shipment / Invoice</h2>
+          <div class="grid">
+            <div>
+              <label for="dashShipmentSelect">Select purchase shipment / invoice</label
+              ><select id="dashShipmentSelect">
+                <option value="">Choose shipment / invoice…</option>
+              </select>
+            </div>
+          </div>
+          <div id="dashShipmentProfit" class="notice" style="margin-top: 12px">
+            Choose a shipment / invoice to see sales and profit for it.
+          </div>
+        </div>
+        <div class="card">
+          <h2>Profit by Product</h2>
+          <div class="grid">
+            <div>
+              <label for="dashProductSelect">Select product</label
+              ><select id="dashProductSelect">
+                <option value="">Choose product…</option>
+              </select>
+            </div>
+          </div>
+          <div id="dashProductProfit" class="notice" style="margin-top: 12px">
+            Choose a product to see its sales and profit.
+          </div>
+        </div>
+        <div class="card">
+          <h2>Purchase Summary</h2>
+          <div class="table-wrap" id="landedTable"></div>
+        </div>
+        <div class="card">
+          <h2>Stock by Product</h2>
+          <div class="table-wrap" id="dashStock"></div>
+        </div>
+      </section>
+
+      <section id="products" class="panel">
+        <div class="card">
+          <h2 id="productFormTitle">Add Your Product</h2>
+          <form id="productForm">
+            <input type="hidden" id="productId" />
+            <div class="grid">
+              <div>
+                <label for="pName">Product name *</label
+                ><input id="pName" required placeholder="e.g. Toor Dal" />
+              </div>
+              <div><label for="pSku">HSN code</label><input id="pSku" placeholder="e.g. 0713" /></div>
+              <div>
+                <label for="pUnit">Stock unit</label
+                ><select id="pUnit">
+                  <option>kg</option>
+                  <option>tonne</option>
+                  <option>bag</option>
+                  <option>box</option>
+                  <option>piece</option>
+                  <option>litre</option>
+                  <option>drum</option>
+                  <option>other</option>
+                </select>
+              </div>
+              <div>
+                <label for="pCategory">Category</label><input id="pCategory" placeholder="e.g. Pulses" />
+              </div>
+              <div>
+                <label for="pActive">Status</label
+                ><select id="pActive">
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+              </div>
+              <div><label for="pNotes">Notes</label><input id="pNotes" /></div>
+            </div>
+            <div class="actions">
+              <button class="primary" type="submit">Save Product</button
+              ><button type="button" id="productCancel">Clear</button>
+            </div>
+            <div
+              id="productMessage"
+              class="notice"
+              role="status"
+              aria-live="polite"
+              style="margin-top: 12px; display: none"
+            ></div>
+          </form>
+        </div>
+        <div class="card">
+          <h2>Product List</h2>
+          <p class="muted">Save product details here. Stock is calculated only from purchases minus sales.</p>
+          <div class="table-wrap" id="productsTable"></div>
+        </div>
+      </section>
+
+      <section id="shipments" class="panel">
+        <div class="card">
+          <h2 id="shipmentFormTitle">Add Purchase / Shipment</h2>
+          <form id="shipmentForm">
+            <input type="hidden" id="shipmentId" />
+            <div class="grid">
+              <div><label>Date *</label><input type="date" id="shDate" required /></div>
+              <div><label>Shipment / invoice reference</label><input id="shRef" /></div>
+              <div>
+                <label>Product *</label
+                ><select id="shProduct" required></select>
+              </div>
+              <div>
+                <label>Purchased quantity *</label
+                ><input type="number" min="0.000001" step="any" id="shQty" required />
+              </div>
+              <div>
+                <label>Purchase unit *</label
+                ><select id="shUnit" required>
+                  <option>kg</option>
+                  <option>tonne</option>
+                  <option>bag</option>
+                  <option>box</option>
+                  <option>piece</option>
+                  <option>litre</option>
+                  <option>drum</option>
+                  <option>other</option>
+                </select>
+              </div>
+              <div>
+                <label>Purchase rate per unit — as per invoice *</label
+                ><input type="number" min="0" step="any" id="shRateInv" required />
+              </div>
+              <div>
+                <label>Purchase rate per unit — cash</label
+                ><input type="number" min="0" step="any" id="shRateCash" value="0" />
+              </div>
+              <div>
+                <label>Currency</label
+                ><select id="shCurrency">
+                  <option selected>THB</option>
+                  <option>INR</option>
+                  <option>USD</option>
+                </select>
+              </div>
+              <div style="display: none"><input type="number" min="0.000001" step="any" id="shFx" /></div>
+              <div><label>Notes</label><input id="shNotes" /></div>
+            </div>
+            <div id="customFields-shipment" class="grid"></div>
+            <div class="notice" id="shPreview">Purchase value preview will appear here.</div>
+            <div class="actions">
+              <button class="primary" type="submit">Save Shipment</button
+              ><button type="button" id="shipmentCancel">Clear</button>
+            </div>
+            <div
+              id="shipmentMessage"
+              class="notice"
+              role="status"
+              aria-live="polite"
+              style="display: none; margin-top: 12px"
+            ></div>
+          </form>
+        </div>
+        <div class="card">
+          <h2>Purchase / Shipment Records</h2>
+          <div class="table-wrap" id="shipmentsTable"></div>
+        </div>
+      </section>
+
+      <section id="stock" class="panel">
+        <div class="card">
+          <h2>Current Stock</h2>
+          <div class="muted">
+            Remaining stock is calculated as total purchased quantity − total quantity sold. Opening stock is
+            not used. Use the same product for every transaction.
+          </div>
+          <div class="table-wrap" id="stockTable"></div>
+        </div>
+      </section>
+
+      <section id="sales" class="panel">
+        <div class="card">
+          <h2 id="saleFormTitle">Record a Sale</h2>
+          <form id="saleForm">
+            <input type="hidden" id="saleId" />
+            <div class="grid">
+              <div><label>Date *</label><input type="date" id="saDate" required /></div>
+              <div><label>Buyer / selling party *</label><input id="saBuyer" required /></div>
+              <div style="grid-column: 1/-1">
+                <label>Products in this sale</label>
+                <div class="table-wrap" id="saleLines">
+                  <table class="sale-table" id="saleTable">
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Shipment / Invoice</th>
+                        <th>Qty</th>
+                        <th>Rate</th>
+                        <th>Tax %</th>
+                        <th>Tax amount</th>
+                        <th>Basic amt (Qty × Rate)</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody id="saleLinesBody"></tbody>
+                    <tfoot>
+                      <tr>
+                        <td colspan="6" class="num">Basic total</td>
+                        <td class="num" id="saBasicTotal">0.00</td>
+                        <td></td>
+                      </tr>
+                      <tr>
+                        <td colspan="6" class="num">Tax total</td>
+                        <td class="num" id="saTaxTotal">0.00</td>
+                        <td></td>
+                      </tr>
+                      <tr class="grand">
+                        <td colspan="6" class="num">Grand total</td>
+                        <td class="num" id="saGrandTotal">0.00</td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+                <div class="actions"><button type="button" id="addSaleLine">+ Add Product</button></div>
+                <p class="muted">
+                  Add one row for each product. Select the purchase shipment/invoice, then enter quantity,
+                  selling rate and tax %. Tax amount and basic amount are worked out on the same line. Freight
+                  and other sale costs are shared across the lines based on sales value.
+                </p>
+              </div>
+              <div>
+                <label>Currency</label
+                ><select id="saCurrency">
+                  <option selected>THB</option>
+                  <option>INR</option>
+                  <option>USD</option>
+                </select>
+              </div>
+              <div style="display: none"><input type="number" min="0.000001" step="any" id="saFx" /></div>
+              <div><label>Buyer / delivery location</label><input id="saLocation" /></div>
+              <div>
+                <label>Transport / delivery cost</label
+                ><input type="number" min="0" step="any" id="saTransport" value="0" />
+              </div>
+              <div>
+                <label>Other sale costs</label
+                ><input type="number" min="0" step="any" id="saOther" value="0" />
+              </div>
+              <div>
+                <label>Payment received so far</label
+                ><input type="number" min="0" step="any" id="saReceived" value="0" />
+              </div>
+              <div><label>Notes</label><input id="saNotes" /></div>
+            </div>
+            <div id="customFields-sale" class="grid"></div>
+            <div class="actions">
+              <button class="primary" type="submit">Save Sale</button
+              ><button type="button" id="saleCancel">Clear</button>
+            </div>
+            <div
+              id="saleMessage"
+              class="notice"
+              role="status"
+              aria-live="polite"
+              style="display: none; margin-top: 12px"
+            ></div>
+          </form>
+        </div>
+        <div class="card">
+          <h2>All Sales Records</h2>
+          <div class="table-wrap" id="salesTable"></div>
+        </div>
+      </section>
+
+      <section id="expenses" class="panel">
+        <div class="card">
+          <h2 id="expenseFormTitle">Add Expense</h2>
+          <form id="expenseForm">
+            <input type="hidden" id="expenseId" />
+            <div class="grid">
+              <div><label>Date *</label><input type="date" id="exDate" required /></div>
+              <div>
+                <label>Category</label
+                ><select id="exCategory">
+                  <option>Warehouse</option>
+                  <option>Labour / staff</option>
+                  <option>Marketing</option>
+                  <option>Bank fees</option>
+                  <option>Partner reimbursement</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label>Amount *</label
+                ><input type="number" min="0.000001" step="any" id="exAmount" required />
+              </div>
+              <div>
+                <label>Currency</label
+                ><select id="exCurrency">
+                  <option selected>THB</option>
+                  <option>INR</option>
+                  <option>USD</option>
+                </select>
+              </div>
+              <div style="display: none"><input type="number" min="0.000001" step="any" id="exFx" /></div>
+              <div><label>Description / paid by</label><input id="exDescription" /></div>
+            </div>
+            <div id="customFields-expense" class="grid"></div>
+            <div class="actions">
+              <button class="primary" type="submit">Save Expense</button
+              ><button type="button" id="expenseCancel">Clear</button>
+            </div>
+            <div
+              id="expenseMessage"
+              class="notice"
+              role="status"
+              aria-live="polite"
+              style="display: none; margin-top: 12px"
+            ></div>
+          </form>
+        </div>
+        <div class="card">
+          <h2>Profit Sharing</h2>
+          <div class="grid">
+            <div>
+              <label>Your share (%)</label><input type="number" min="0" max="100" id="yourShare" value="50" />
+            </div>
+            <div>
+              <label>Thailand partner share (%)</label
+              ><input type="number" min="0" max="100" id="partnerShare" value="50" />
+            </div>
+            <div style="align-self: end">
+              <button class="primary" id="saveShares" type="button">Save Percentages</button>
+            </div>
+          </div>
+          <p class="muted">
+            Shares must total 100%. Profit estimate deducts estimated cost of goods sold, sale-level costs and
+            recorded expenses.
+          </p>
+          <div id="profitSummary"></div>
+        </div>
+        <div class="card">
+          <h2>Expense Records</h2>
+          <div class="table-wrap" id="expensesTable"></div>
+        </div>
+      </section>
+
+      <section id="settings" class="panel">
+        <div class="card">
+          <h2>Currency Settings</h2>
+          <p class="muted">
+            Set the conversion rates used internally to calculate totals. THB is the default display currency;
+            rates are manual, not live market rates.
+          </p>
+          <div class="grid">
+            <div>
+              <label>INR per 1 THB</label
+              ><input type="number" min="0.000001" step="any" id="fxTHB" value="2.35" />
+            </div>
+            <div>
+              <label>INR per 1 USD</label
+              ><input type="number" min="0.000001" step="any" id="fxUSD" value="88" />
+            </div>
+          </div>
+          <div class="actions">
+            <button class="primary" id="saveSettings" type="button">Save Currency Settings</button>
+          </div>
+          <div id="settingsMessage"></div>
+        </div>
+      </section>
+
+      <section id="customize" class="panel">
+        <div class="card">
+          <h2>Customize Your Software</h2>
+          <p class="muted">
+            Make common changes here without editing code. Changes are saved to the shared cloud data. Keep a
+            backup before major changes.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Dashboard cards</h3>
+          <p class="muted">Rename the dashboard cards and choose which ones you want to see.</p>
+          <div id="dashboardCustomize" class="grid"></div>
+          <div class="actions">
+            <button class="primary" id="saveDashboardCustomize" type="button">Save Dashboard Changes</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Landed cost calculation</h3>
+          <p class="muted">
+            Choose which shipment costs should be included in landed cost. Unchecked costs are still stored on
+            each shipment, but will not be included in the landed-cost/profit calculation.
+          </p>
+          <div id="costCustomize" class="grid"></div>
+          <div class="actions">
+            <button class="primary" id="saveCostCustomize" type="button">Save Cost Calculation</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Add your own fields</h3>
+          <p class="muted">
+            Create extra fields for purchase/shipment records, sales records, or expenses. Examples: Container
+            number, customs agent, payment reference, truck number, or paid by.
+          </p>
+          <div class="grid">
+            <div>
+              <label for="cfName">Field name</label><input id="cfName" placeholder="e.g. Container number" />
+            </div>
+            <div>
+              <label for="cfType">Add field to</label
+              ><select id="cfType">
+                <option value="shipment">Purchases / Shipments</option>
+                <option value="sale">Sales</option>
+                <option value="expense">Expenses</option>
+              </select>
+            </div>
+            <div>
+              <label for="cfKind">Field format</label
+              ><select id="cfKind">
+                <option value="text">Text</option>
+                <option value="number">Number</option>
+                <option value="date">Date</option>
+              </select>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="primary" id="addCustomField" type="button">Add Field</button>
+          </div>
+          <div id="customFieldsList"></div>
+          <p class="muted">
+            Deleting a custom field removes it from the form. Existing saved values remain in your backup but
+            won't be shown in the form.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Important business fields already included</h3>
+          <p>
+            Date, purchased quantity, purchase rate, selling party/buyer, quantity sold, sale rate, sale
+            amount, purchase quantity, purchase rate, sales quantity, selling rate, stock remaining (purchased
+            minus sold), and estimated profit.
+          </p>
+        </div>
+      </section>
+
+      <section id="backup" class="panel">
+        <div class="card">
+          <h2>Backup Your Business Data</h2>
+          <p>
+            Download a backup file regularly. If you change computers or clear your browser data, you can
+            restore your records using this file.
+          </p>
+          <div class="actions">
+            <button class="primary" id="downloadBackup">Download Full Backup</button
+            ><label class="btn" for="restoreFile">Restore from Backup</label
+            ><input type="file" id="restoreFile" accept=".json,application/json" style="display: none" />
+          </div>
+          <div class="notice warn" style="margin-top: 14px">
+            <b>Important:</b> Restoring a backup replaces ALL current business records for every user (admin
+            only). Download a backup of your current data first.
+          </div>
+          <h3>Export for Excel</h3>
+          <div class="actions">
+            <button id="exportShipments">Export Purchases CSV</button
+            ><button id="exportSales">Export Sales CSV</button
+            ><button id="exportExpenses">Export Expenses CSV</button
+            ><button id="exportProducts">Export Products CSV</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="reports" class="panel">
+        <div class="card">
+          <h2>Reports</h2>
+          <div class="grid">
+            <div>
+              <label for="rpKind">Report</label
+              ><select id="rpKind">
+                <option value="sales">Sales Report</option>
+                <option value="purchases">Purchase Report</option>
+                <option value="profitProduct">Profit by Product</option>
+                <option value="profitShipment">Profit by Shipment / Invoice</option>
+                <option value="stock">Stock Report (as on “To” date)</option>
+                <option value="tax">Tax Summary (sales tax collected)</option>
+              </select>
+            </div>
+            <div><label for="rpFrom">From date</label><input type="date" id="rpFrom" /></div>
+            <div><label for="rpTo">To date</label><input type="date" id="rpTo" /></div>
+            <div>
+              <label for="rpProduct">Product</label
+              ><select id="rpProduct">
+                <option value="">All products</option>
+              </select>
+            </div>
+          </div>
+          <div class="actions no-print">
+            <button type="button" data-rp-preset="month">This month</button
+            ><button type="button" data-rp-preset="lastmonth">Last month</button
+            ><button type="button" data-rp-preset="fy">This financial year (Apr–Mar)</button
+            ><button type="button" data-rp-preset="all">All dates</button>
+          </div>
+          <div class="actions no-print">
+            <button type="button" class="primary" id="rpXlsx">Export Excel</button
+            ><button type="button" class="primary" id="rpCsv">Export CSV</button
+            ><button type="button" id="rpPrint">Print</button>
+          </div>
+        </div>
+        <div class="card" id="rpOut"></div>
+      </section>
+      <section id="users" class="panel">
+        <div id="usersMsg" class="notice" style="display: none"></div>
+        <div class="card user-card" id="newUserCard">
+          <h2>Create new user</h2>
+          <p class="muted">
+            Choose a username and password, then set what this person can do in each tab. Give them the
+            username and password; they sign in with those. Admins have all rights.
+          </p>
+          <div class="grid">
+            <div><label>Username</label><input id="nuUser" autocomplete="off" autocapitalize="none" placeholder="e.g. somchai" /></div>
+            <div><label>Display name (optional)</label><input id="nuName" placeholder="e.g. Somchai K." /></div>
+            <div><label>Role</label><select id="nuRole" class="u-role"><option value="user">User</option><option value="admin">Admin (all rights)</option></select></div>
+            <div><label>Password (min 8 characters)</label><div class="pw-row"><input id="nuPass" autocomplete="new-password" /><button type="button" id="nuGen">Generate</button></div></div>
+          </div>
+          <h3 style="margin-top: 14px">Permissions</h3>
+          <div id="nuPerms"></div>
+          <div class="actions"><button type="button" class="primary" id="nuCreate">Create user</button></div>
+        </div>
+        <div class="section-heading"><h2>All users</h2><button type="button" id="usersRefresh">Refresh list</button></div>
+        <div id="usersList"></div>
+      </section>
+      <footer class="muted" style="padding: 10px 2px 25px">
+        Box 11 Trade Manager · Fresh Start edition. Your data is saved securely to your account in the cloud.
+        Download a backup now and then.
+      </footer>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script>
+      (function () {
+        const client = supabase.createClient(BOX11_CONFIG.SUPABASE_URL, BOX11_CONFIG.SUPABASE_ANON_KEY);
+        window.supabase = { createClient: () => client };
+      })();
+    </script>
+
+    <!-- The business app itself. Stored as text and started by the script below once the data is loaded. -->
+    <script type="text/plain" id="appSource">
+      const KEY = "box11TradeManagerFreshStart20261016";
+      const today = () => new Date().toISOString().slice(0, 10);
+      const defaultSettings = () => ({
+        inrPerTHB: 2.35,
+        inrPerUSD: 88,
+        inrPerEUR: 102,
+        yourShare: 50,
+        partnerShare: 50,
+        customFields: [],
+        dashboardCards: [
+          { key: "purchase", label: "Purchase Goods Value", show: true },
+          { key: "landed", label: "Total Landed Cost", show: true },
+          { key: "revenue", label: "Sales Revenue", show: true },
+          { key: "profit", label: "Estimated Net Profit / Loss", show: true },
+          { key: "outstanding", label: "Sales Outstanding", show: true },
+        ],
+        includeCosts: {
+          freight: true,
+          insurance: true,
+          port: true,
+          duty: true,
+          other: true,
+          transport: true,
+        },
+      });
+      const defaultData = () => ({
+        products: [],
+        shipments: [],
+        sales: [],
+        expenses: [],
+        settings: defaultSettings(),
+      });
+      let data;
+      try {
+        data = JSON.parse(localStorage.getItem(KEY)) || defaultData();
+      } catch (e) {
+        data = defaultData();
+      }
+      function normalizeData() {
+        if (!data || typeof data !== "object") data = defaultData();
+        ["products", "shipments", "sales", "expenses"].forEach((k) => {
+          if (!Array.isArray(data[k])) data[k] = [];
+        });
+        if (!data.settings || typeof data.settings !== "object")
+          data.settings = defaultSettings();
+        const freshSettings = defaultSettings();
+        Object.keys(freshSettings).forEach((k) => {
+          if (data.settings[k] === undefined) data.settings[k] = freshSettings[k];
+        });
+        if (!Array.isArray(data.settings.customFields))
+          data.settings.customFields = [];
+        if (!Array.isArray(data.settings.dashboardCards))
+          data.settings.dashboardCards = freshSettings.dashboardCards;
+        if (!data.settings.includeCosts)
+          data.settings.includeCosts = freshSettings.includeCosts;
+      }
+      normalizeData();
+      function applyExternalData(d) {
+        data = d;
+        normalizeData();
+        renderAll();
+      }
+      function save() {
+        let saved = true;
+        try {
+          localStorage.setItem(KEY, JSON.stringify(data));
+        } catch (err) {
+          saved = false;
+          console.error("Could not save to browser storage:", err);
+        }
+        // Refresh each section independently; one display issue should not prevent other records showing.
+        const refreshers = [
+          renderProducts,
+          renderShipments,
+          renderSales,
+          renderExpenses,
+          renderStock,
+          renderDashboard,
+          renderProfit,
+          renderCustomFields,
+          renderCustomize,
+          renderReports,
+        ];
+        refreshers.forEach((fn) => {
+          try {
+            fn();
+          } catch (err) {
+            console.error("Display refresh failed in " + fn.name + ":", err);
+          }
+        });
+        try {
+          document.getElementById("fxTHB").value = data.settings.inrPerTHB;
+          document.getElementById("fxUSD").value = data.settings.inrPerUSD;
+        } catch (err) {
+          console.error("Settings display refresh failed:", err);
+        }
+        return saved;
+      }
+      function id() {
+        return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      }
+      function num(v) {
+        return Number(v) || 0;
+      }
+      function val(k) {
+        return document.getElementById(k).value;
+      }
+      function setv(k, v) {
+        document.getElementById(k).value = v ?? "";
+      }
+      function esc(s) {
+        return String(s ?? "").replace(
+          /[&<>"']/g,
+          (c) =>
+            ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+              c
+            ],
+        );
+      }
+      function fx(cur) {
+        return cur === "INR"
+          ? 1
+          : cur === "THB"
+            ? num(data.settings.inrPerTHB)
+            : cur === "USD"
+              ? num(data.settings.inrPerUSD)
+              : cur === "EUR"
+                ? num(data.settings.inrPerEUR)
+                : 1;
+      }
+      function money(x, c = null) {
+        if (c === null) {
+          x = thb(x);
+          c = "THB";
+        }
+        let sym = { INR: "₹", THB: "฿", USD: "$", EUR: "€" }[c] || "";
+        return (
+          sym +
+          num(x).toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        );
+      }
+      function qty(x) {
+        return num(x).toLocaleString("en-IN", { maximumFractionDigits: 3 });
+      }
+      function thb(x) {
+        return num(data.settings.inrPerTHB)
+          ? num(x) / num(data.settings.inrPerTHB)
+          : 0;
+      }
+      function landed(s) {
+        return num(s.qty) * num(s.rate);
+      }
+      function available(s) {
+        return num(s.qty);
+      }
+      function rev(s) {
+        return num(s.qty) * num(s.rate) * num(s.fx);
+      }
+      function round2(x) {
+        return Math.round((num(x) + Number.EPSILON) * 100) / 100;
+      }
+      function rateInv(s) {
+        return s.rateInv !== undefined ? num(s.rateInv) : num(s.rate);
+      }
+      function rateCash(s) {
+        return num(s.rateCash);
+      }
+      function saleTax(s) {
+        return (
+          (s.taxAmt !== undefined
+            ? num(s.taxAmt)
+            : (num(s.qty) * num(s.rate) * num(s.taxPct)) / 100) * num(s.fx)
+        );
+      }
+      function costs() {
+        let out = {};
+        data.products.forEach((p) => (out[p.name] = 0));
+        let sums = {};
+        data.shipments.forEach((s) => {
+          let q = available(s);
+          sums[s.product] ??= { q: 0, c: 0 };
+          sums[s.product].q += q;
+          sums[s.product].c += landed(s) * num(s.fx);
+        });
+        Object.keys(sums).forEach(
+          (k) => (out[k] = sums[k].q ? sums[k].c / sums[k].q : 0),
+        );
+        return out;
+      }
+      function stockRows() {
+        const map = {};
+        const keyOf = (name) =>
+          String(name || "")
+            .trim()
+            .toLocaleLowerCase();
+        data.products.forEach((p) => {
+          const k = keyOf(p.name);
+          if (!k) return;
+          map[k] = {
+            product: p.name,
+            unit: p.unit || "kg",
+            opening: 0,
+            received: 0,
+            sold: 0,
+          };
+        });
+        data.shipments.forEach((s) => {
+          const k = keyOf(s.product);
+          if (!k) return;
+          if (!map[k])
+            map[k] = {
+              product: s.product,
+              unit: s.unit || "kg",
+              opening: 0,
+              received: 0,
+              sold: 0,
+            };
+          map[k].received += num(s.qty);
+          if (s.unit) map[k].unit = s.unit;
+        });
+        data.sales.forEach((s) => {
+          const k = keyOf(s.product);
+          if (!k) return;
+          if (!map[k])
+            map[k] = {
+              product: s.product,
+              unit: s.unit || "kg",
+              opening: 0,
+              received: 0,
+              sold: 0,
+            };
+          map[k].sold += num(s.qty);
+        });
+        return Object.values(map).map((r) => ({
+          ...r,
+          available: r.opening + r.received,
+          remaining: r.opening + r.received - r.sold,
+        }));
+      }
+      function totals() {
+        let cost = costs();
+        let revenue = data.sales.reduce((a, s) => a + rev(s), 0);
+        let cogs = data.sales.reduce(
+          (a, s) => a + num(s.qty) * (cost[s.product] || 0),
+          0,
+        );
+        let saleCost = data.sales.reduce(
+          (a, s) => a + (num(s.transport) + num(s.other)) * num(s.fx),
+          0,
+        );
+        let expenses = data.expenses.reduce(
+          (a, e) => a + num(e.amount) * num(e.fx),
+          0,
+        );
+        let received = data.sales.reduce(
+          (a, s) => a + num(s.received) * num(s.fx),
+          0,
+        );
+        let purchase = data.shipments.reduce(
+          (a, s) => a + num(s.qty) * num(s.rate) * num(s.fx),
+          0,
+        );
+        let land = data.shipments.reduce((a, s) => a + landed(s) * num(s.fx), 0);
+        return {
+          tax: data.sales.reduce((a, x) => a + saleTax(x), 0),
+          revenue,
+          cogs,
+          saleCost,
+          expenses,
+          received,
+          purchase,
+          land,
+          profit: revenue - cogs - saleCost - expenses,
+          stockIn: data.shipments.reduce((a, s) => a + num(s.qty), 0),
+          sold: data.sales.reduce((a, s) => a + num(s.qty), 0),
+        };
+      }
+      function table(headers, rows) {
+        if (!rows.length)
+          return '<div class="empty">No records yet. Add your first entry above.</div>';
+        return (
+          "<table><thead><tr>" +
+          headers.map((h) => "<th>" + h + "</th>").join("") +
+          "</tr></thead><tbody>" +
+          rows.join("") +
+          "</tbody></table>"
+        );
+      }
+      function actions(type, rec) {
+        return `<button class="small" onclick="editRecord('${type}','${rec.id}')">Edit</button> <button class="small danger" onclick="deleteRecord('${type}','${rec.id}')">Delete</button>`;
+      }
+      function renderProducts() {
+        document.getElementById("productsTable").innerHTML = table(
+          ["HSN Code", "Product", "Unit", "Category", "Status", "Notes", "Actions"],
+          data.products.map(
+            (p) =>
+              `<tr><td>${esc(p.sku || "")}</td><td>${esc(p.name || "")}</td><td>${esc(p.unit || "")}</td><td>${esc(p.category || "")}</td><td>${p.active ? "Active" : "Inactive"}</td><td>${esc(p.notes || "")}</td><td class="actions">${actions("product", p)}</td></tr>`,
+          ),
+        );
+        refreshProductOptions();
+      }
+      function refreshProductOptions() {
+        ["shProduct", "saProduct"].forEach((k) => {
+          let el = document.getElementById(k);
+          if (!el) return;
+          let old = el.value;
+          el.innerHTML =
+            '<option value="">Choose product…</option>' +
+            data.products
+              .filter((p) => p.active)
+              .map(
+                (p) =>
+                  `<option value="${esc(p.name || "")}">${esc(p.name || "")}</option>`,
+              )
+              .join("");
+          if ([...el.options].some((o) => o.value === old)) el.value = old;
+        });
+        const unitEl = document.getElementById("shUnit");
+        const productEl = document.getElementById("shProduct");
+        if (unitEl && productEl) {
+          const p = data.products.find((x) => x.name === productEl.value);
+          if (p && p.unit && [...unitEl.options].some((o) => o.value === p.unit))
+            unitEl.value = p.unit;
+        }
+        document.querySelectorAll("#saleLines .sale-line").forEach((row) => {
+          const product = row.querySelector(".sl-product");
+          const previous = product.value;
+          product.innerHTML =
+            '<option value="">Choose product…</option>' +
+            data.products
+              .filter((p) => p.active)
+              .map(
+                (p) =>
+                  `<option value="${esc(p.name || "")}">${esc(p.name || "")}</option>`,
+              )
+              .join("");
+          if ([...product.options].some((o) => o.value === previous))
+            product.value = previous;
+          product.dispatchEvent(new Event("change"));
+        });
+        refreshShipmentOptions();
+      }
+      document.getElementById("shProduct")?.addEventListener("change", () => {
+        const p = data.products.find((x) => x.name === val("shProduct"));
+        if (
+          p?.unit &&
+          document.getElementById("shUnit") &&
+          [...document.getElementById("shUnit").options].some(
+            (o) => o.value === p.unit,
+          )
+        )
+          setv("shUnit", p.unit);
+      });
+      function shipmentSold(shipmentId, excludeSaleId = "") {
+        return data.sales
+          .filter(
+            (s) =>
+              String(s.shipmentId || "") === String(shipmentId) &&
+              String(s.id) !== String(excludeSaleId),
+          )
+          .reduce((a, s) => a + num(s.qty), 0);
+      }
+      function shipmentRemaining(sh) {
+        return num(sh.qty) - shipmentSold(sh.id, val("saleId"));
+      }
+      function refreshShipmentOptions() {
+        const el = document.getElementById("saShipment");
+        if (!el) return;
+        const old = el.value;
+        el.innerHTML =
+          '<option value="">Choose shipment / invoice…</option>' +
+          data.shipments
+            .map((sh) => {
+              const ref = sh.ref || "Purchase " + String(sh.id).slice(-6);
+              return `<option value="${esc(sh.id)}">${esc(ref)} — ${esc(sh.product)} — ${esc(sh.date || "")} — Remaining: ${qty(shipmentRemaining(sh))}</option>`;
+            })
+            .join("");
+        if ([...el.options].some((o) => o.value === old)) el.value = old;
+      }
+      function renderShipments() {
+        document.getElementById("shipmentsTable").innerHTML = table(
+          [
+            "Date",
+            "Reference",
+            "Product",
+            "Purchased Qty",
+            "Unit",
+            "Rate – Invoice",
+            "Rate – Cash",
+            "Total Rate",
+            "Currency",
+            "Invoice Value (THB)",
+            "Cash Value (THB)",
+            "Purchase Total (THB)",
+            "Notes",
+            "Actions",
+          ],
+          data.shipments.map(
+            (s) =>
+              `<tr><td>${esc(s.date)}</td><td>${esc(s.ref)}</td><td>${esc(s.product)}</td><td>${qty(s.qty)}</td><td>${esc(s.unit || (data.products.find((p) => p.name === s.product) || {}).unit || "kg")}</td><td>${money(rateInv(s), s.currency)}</td><td>${money(rateCash(s), s.currency)}</td><td>${money(s.rate, s.currency)}</td><td>${esc(s.currency)}</td><td>${money(num(s.qty) * rateInv(s) * num(s.fx))}</td><td>${money(num(s.qty) * rateCash(s) * num(s.fx))}</td><td>${money(num(s.qty) * num(s.rate) * num(s.fx))}</td><td>${esc(s.notes || "")}</td><td class="actions">${actions("shipment", s)}</td></tr>`,
+          ),
+        );
+      }
+      function saleProfit(s) {
+        const sh = data.shipments.find((x) => String(x.id) === String(s.shipmentId));
+        if (!sh) return null;
+        const saleRevenue = rev(s);
+        const costOfGoods = num(s.qty) * num(sh.rate) * num(sh.fx);
+        const saleCosts = (num(s.transport) + num(s.other)) * num(s.fx);
+        return saleRevenue - costOfGoods - saleCosts;
+      }
+      function shipmentProfit(shipmentId) {
+        const sh = data.shipments.find((x) => String(x.id) === String(shipmentId));
+        if (!sh) return null;
+        const linkedSales = data.sales.filter(
+          (s) => String(s.shipmentId || "") === String(sh.id),
+        );
+        const revenue = linkedSales.reduce((a, s) => a + rev(s), 0);
+        const cost = linkedSales.reduce(
+          (a, s) => a + num(s.qty) * num(sh.rate) * num(sh.fx),
+          0,
+        );
+        const saleCosts = linkedSales.reduce(
+          (a, s) => a + (num(s.transport) + num(s.other)) * num(s.fx),
+          0,
+        );
+        const soldQty = linkedSales.reduce((a, s) => a + num(s.qty), 0);
+        return {
+          revenue,
+          cost,
+          saleCosts,
+          profit: revenue - cost - saleCosts,
+          soldQty,
+          remaining: num(sh.qty) - soldQty,
+          transactions: linkedSales.length,
+        };
+      }
+      function renderSales() {
+        const rows = data.sales.map((s) => {
+          const sh = data.shipments.find(
+            (x) => String(x.id) === String(s.shipmentId),
+          );
+          const profit = saleProfit(s);
+          return `<tr><td>${esc(s.date)}</td><td>${esc(s.buyer)}</td><td>${esc(s.product)}</td><td>${esc(sh ? sh.ref || "Purchase " + String(sh.id).slice(-6) : "Not linked (older sale)")}</td><td>${qty(s.qty)}</td><td>${money(s.rate, s.currency)}</td><td>${esc(s.currency)}</td><td>${num(s.taxPct)}%</td><td>${money(rev(s))}</td><td>${money(saleTax(s))}</td><td>${money(rev(s) + saleTax(s))}</td><td>${profit === null ? "N/A (no linked shipment)" : money(profit)}</td><td>${money(num(s.received) * num(s.fx))}</td><td>${esc(s.location)}</td><td class="actions">${actions("sale", s)}</td></tr>`;
+        });
+        if (rows.length) {
+          const b = data.sales.reduce((a, s) => a + rev(s), 0),
+            t = data.sales.reduce((a, s) => a + saleTax(s), 0);
+          rows.push(
+            `<tr class="total-row"><td colspan="8">Total (Basic / Tax / Grand)</td><td>${money(b)}</td><td>${money(t)}</td><td>${money(b + t)}</td><td colspan="4"></td></tr>`,
+          );
+        }
+        document.getElementById("salesTable").innerHTML = table(
+          [
+            "Date",
+            "Buyer",
+            "Product",
+            "Source Shipment / Invoice",
+            "Qty",
+            "Sell Rate",
+            "Currency",
+            "Tax %",
+            "Basic Amount (THB)",
+            "Tax Amount (THB)",
+            "Total incl. Tax (THB)",
+            "Transaction Profit (THB)",
+            "Received (THB)",
+            "Location",
+            "Actions",
+          ],
+          rows,
+        );
+      }
+
+      function renderExpenses() {
+        document.getElementById("expensesTable").innerHTML = table(
+          [
+            "Date",
+            "Category",
+            "Description",
+            "Amount",
+            "Currency",
+            "Amount (THB)",
+            "Actions",
+          ],
+          data.expenses.map(
+            (e) =>
+              `<tr><td>${esc(e.date)}</td><td>${esc(e.category)}</td><td>${esc(e.description)}</td><td>${money(e.amount, e.currency)}</td><td>${esc(e.currency)}</td><td>${money(num(e.amount) * num(e.fx))}</td><td class="actions">${actions("expense", e)}</td></tr>`,
+          ),
+        );
+      }
+      function renderStock() {
+        document.getElementById("stockTable").innerHTML = table(
+          ["Product", "Unit", "Purchased", "Sold", "Remaining", "Status"],
+          stockRows().map(
+            (s) =>
+              `<tr><td>${esc(s.product)}</td><td>${esc(s.unit)}</td><td>${qty(s.received)}</td><td>${qty(s.sold)}</td><td>${qty(s.remaining)}</td><td>${s.remaining < 0 ? "CHECK: negative stock" : s.remaining === 0 ? "Out of stock" : "In stock"}</td></tr>`,
+          ),
+        );
+      }
+      function renderDashboard() {
+        let t = totals();
+        let values = {
+          purchase: money(t.purchase),
+          landed: money(t.land),
+          revenue: money(t.revenue),
+          profit: money(t.profit),
+          stockIn: qty(t.stockIn),
+          sold: qty(t.sold),
+          remaining: qty(t.stockIn - t.sold),
+          outstanding: money(t.revenue + t.tax - t.received),
+        };
+        document.getElementById("metrics").innerHTML = (
+          data.settings.dashboardCards || []
+        )
+          .filter((c) => c.show !== false)
+          .map((c) => {
+            let sub = "";
+            return `<div class="metric"><div class="label">${esc(c.label || c.key)}</div><div class="value">${values[c.key] ?? ""}</div>${sub}</div>`;
+          })
+          .join("");
+        document.getElementById("landedTable").innerHTML = table(
+          [
+            "Date",
+            "Reference",
+            "Product",
+            "Qty Purchased",
+            "Purchase Total (THB)",
+            "Cost per Unit (THB)",
+          ],
+          data.shipments.map(
+            (s) =>
+              `<tr><td>${esc(s.date)}</td><td>${esc(s.ref)}</td><td>${esc(s.product)}</td><td>${qty(s.qty)}</td><td>${money(num(s.qty) * num(s.rate) * num(s.fx))}</td><td>${money(num(s.qty) ? num(s.rate) * num(s.fx) : 0)}</td></tr>`,
+          ),
+        );
+        document.getElementById("dashStock").innerHTML =
+          document.getElementById("stockTable").innerHTML;
+        renderDashboardShipmentProfit();
+        renderDashboardProductProfit();
+      }
+
+      function productProfit(productName) {
+        const productSales = data.sales.filter((s) => s.product === productName);
+        const revenue = productSales.reduce((a, s) => a + rev(s), 0);
+        const cogs = productSales.reduce((a, s) => {
+          const sh = data.shipments.find(
+            (x) => String(x.id) === String(s.shipmentId),
+          );
+          return a + num(s.qty) * (sh ? num(sh.rate) * num(sh.fx) : 0);
+        }, 0);
+        const saleCosts = productSales.reduce(
+          (a, s) => a + (num(s.transport) + num(s.other)) * num(s.fx),
+          0,
+        );
+        const soldQty = productSales.reduce((a, s) => a + num(s.qty), 0);
+        const purchasedQty = data.shipments
+          .filter((sh) => sh.product === productName)
+          .reduce((a, sh) => a + num(sh.qty), 0);
+        const remaining =
+          purchasedQty -
+          data.sales
+            .filter((s) => s.product === productName)
+            .reduce((a, s) => a + num(s.qty), 0);
+        return {
+          revenue,
+          cogs,
+          saleCosts,
+          profit: revenue - cogs - saleCosts,
+          soldQty,
+          purchasedQty,
+          remaining,
+          transactions: productSales.length,
+        };
+      }
+      function renderDashboardProductProfit() {
+        const el = document.getElementById("dashProductSelect");
+        if (!el) return;
+        const previous = el.value;
+        el.innerHTML =
+          '<option value="">Choose product…</option>' +
+          data.products
+            .map((p) => `<option value="${esc(p.name)}">${esc(p.name)}</option>`)
+            .join("");
+        if ([...el.options].some((o) => o.value === previous)) el.value = previous;
+        const target = document.getElementById("dashProductProfit");
+        if (!el.value) {
+          target.innerHTML = "Choose a product to see its sales and profit.";
+          return;
+        }
+        const p = productProfit(el.value);
+        target.innerHTML = `<div class="metrics"><div class="metric"><div class="label">Product</div><div class="value">${esc(el.value)}</div></div><div class="metric"><div class="label">Quantity Sold</div><div class="value">${qty(p.soldQty)}</div></div><div class="metric"><div class="label">Quantity Remaining</div><div class="value">${qty(p.remaining)}</div></div><div class="metric"><div class="label">Sales Revenue</div><div class="value">${money(p.revenue)}</div></div><div class="metric"><div class="label">Cost of Goods Sold</div><div class="value">${money(p.cogs)}</div></div><div class="metric"><div class="label">Sale-level Costs</div><div class="value">${money(p.saleCosts)}</div></div><div class="metric"><div class="label">Profit by Product</div><div class="value">${money(p.profit)}</div></div></div><p class="muted">${p.transactions} sale transaction(s). Profit excludes general business expenses.</p>`;
+      }
+
+      function renderDashboardShipmentProfit() {
+        const el = document.getElementById("dashShipmentSelect");
+        if (!el) return;
+        const previous = el.value;
+        el.innerHTML =
+          '<option value="">Choose shipment / invoice…</option>' +
+          data.shipments
+            .map(
+              (sh) =>
+                `<option value="${esc(sh.id)}">${esc(sh.ref || "Purchase " + String(sh.id).slice(-6))} — ${esc(sh.product)} — ${esc(sh.date || "")}</option>`,
+            )
+            .join("");
+        if ([...el.options].some((o) => o.value === previous)) el.value = previous;
+        const target = document.getElementById("dashShipmentProfit");
+        if (!el.value) {
+          target.innerHTML =
+            "Choose a shipment / invoice to see sales and profit for it.";
+          return;
+        }
+        const sh = data.shipments.find((x) => String(x.id) === String(el.value));
+        const p = shipmentProfit(el.value);
+        if (!sh || !p) {
+          target.textContent = "Shipment not found.";
+          return;
+        }
+        target.innerHTML = `<div class="metrics"><div class="metric"><div class="label">Shipment / Invoice</div><div class="value">${esc(sh.ref || "Purchase " + String(sh.id).slice(-6))}</div></div><div class="metric"><div class="label">Quantity Sold</div><div class="value">${qty(p.soldQty)}</div></div><div class="metric"><div class="label">Quantity Remaining</div><div class="value">${qty(p.remaining)}</div></div><div class="metric"><div class="label">Sales Revenue</div><div class="value">${money(p.revenue)}</div></div><div class="metric"><div class="label">Cost of Goods Sold</div><div class="value">${money(p.cost)}</div></div><div class="metric"><div class="label">Sale-level Costs</div><div class="value">${money(p.saleCosts)}</div></div><div class="metric"><div class="label">Profit on Sold Quantity</div><div class="value">${money(p.profit)}</div></div></div><p class="muted">${p.transactions} linked sale transaction(s). Profit is calculated only on quantity sold from this shipment and excludes general business expenses.</p>`;
+      }
+      function renderProfit() {
+        let t = totals(),
+          y = num(data.settings.yourShare),
+          p = num(data.settings.partnerShare);
+        document.getElementById("yourShare").value = y;
+        document.getElementById("partnerShare").value = p;
+        document.getElementById("profitSummary").innerHTML =
+          `<div class="metrics"><div class="metric"><div class="label">Estimated Net Profit / Loss</div><div class="value">${money(t.profit)}</div></div><div class="metric"><div class="label">Your Estimated Share</div><div class="value">${money((t.profit * y) / 100)}</div></div><div class="metric"><div class="label">Thailand Partner Share</div><div class="value">${money((t.profit * p) / 100)}</div></div><div class="metric"><div class="label">Recorded Other Expenses</div><div class="value">${money(t.expenses)}</div></div></div>`;
+      }
+
+      function renderCustomFields() {
+        ["shipment", "sale", "expense"].forEach((type) => {
+          let host = document.getElementById("customFields-" + type);
+          if (!host) return;
+          let fields = (data.settings.customFields || []).filter(
+            (f) => f.type === type,
+          );
+          host.innerHTML = fields
+            .map((f) => {
+              let id = "custom_" + f.id,
+                kind = f.kind || "text";
+              return `<div><label for="${id}">${esc(f.name)}</label><input id="${id}" data-custom-id="${esc(f.id)}" type="${kind === "number" ? "number" : kind === "date" ? "date" : "text"}" ${kind === "number" ? 'step="any"' : ""} placeholder="${esc(f.name)}"></div>`;
+            })
+            .join("");
+        });
+      }
+      function readCustomFields(type) {
+        let obj = {};
+        (data.settings.customFields || [])
+          .filter((f) => f.type === type)
+          .forEach((f) => {
+            let el = document.getElementById("custom_" + f.id);
+            if (el) obj[f.id] = el.value;
+          });
+        return obj;
+      }
+      function setCustomValues(type, record) {
+        (data.settings.customFields || [])
+          .filter((f) => f.type === type)
+          .forEach((f) => {
+            let el = document.getElementById("custom_" + f.id);
+            if (el) el.value = (record.custom || {})[f.id] || "";
+          });
+      }
+      function renderCustomize() {
+        const cards = data.settings.dashboardCards || [];
+        document.getElementById("dashboardCustomize").innerHTML = cards
+          .map(
+            (c) =>
+              `<div><label>Card name</label><input data-card-label="${esc(c.key)}" value="${esc(c.label)}"><label style="margin-top:8px"><input data-card-show="${esc(c.key)}" type="checkbox" ${c.show !== false ? "checked" : ""} style="width:auto;margin-right:6px">Show on dashboard</label></div>`,
+          )
+          .join("");
+        const costNames = {
+          freight: "Freight to port",
+          insurance: "Insurance",
+          port: "Port / clearance charges",
+          duty: "Import duty / taxes",
+          other: "Other import costs",
+          transport: "Transport to warehouse",
+        };
+        document.getElementById("costCustomize").innerHTML = Object.entries(costNames)
+          .map(
+            ([k, label]) =>
+              `<div><label><input type="checkbox" data-cost="${k}" ${(data.settings.includeCosts || {})[k] !== false ? "checked" : ""} style="width:auto;margin-right:7px">${label}</label></div>`,
+          )
+          .join("");
+        const fields = data.settings.customFields || [];
+        document.getElementById("customFieldsList").innerHTML = fields.length
+          ? `<div class="table-wrap"><table><thead><tr><th>Field</th><th>Section</th><th>Type</th><th>Action</th></tr></thead><tbody>${fields.map((f) => `<tr><td>${esc(f.name)}</td><td>${{ shipment: "Purchases / Shipments", sale: "Sales", expense: "Expenses" }[f.type]}</td><td>${esc(f.kind)}</td><td><button class="small danger" onclick="removeCustomField('${f.id}')">Remove</button></td></tr>`).join("")}</tbody></table></div>`
+          : '<div class="empty">No custom fields yet.</div>';
+      }
+      function removeCustomField(fid) {
+        if (!confirm("Remove this custom field from the forms?")) return;
+        data.settings.customFields = (data.settings.customFields || []).filter(
+          (f) => f.id !== fid,
+        );
+        save();
+        renderCustomize();
+        renderCustomFields();
+      }
+
+      function keepActiveTab(tabId) {
+        const panel = document.getElementById(tabId);
+        const button = document.querySelector(`nav button[data-tab="${tabId}"]`);
+        if (!panel || !button) return;
+        document
+          .querySelectorAll("nav button")
+          .forEach((x) => x.classList.toggle("active", x === button));
+        document
+          .querySelectorAll(".panel")
+          .forEach((x) => x.classList.toggle("active", x === panel));
+      }
+      function showAppError(message) {
+        const box = document.getElementById("appError");
+        if (!box) return;
+        box.style.display = "block";
+        box.textContent =
+          "A technical issue was detected. Please take a screenshot and send it to ChatGPT.\n" +
+          String(message || "Unknown browser error");
+      }
+      window.addEventListener("error", (e) =>
+        showAppError(
+          (e.message || "Script error") +
+            (e.filename ? "\nFile: " + e.filename : "") +
+            (e.lineno ? "\nLine: " + e.lineno : ""),
+        ),
+      );
+      window.addEventListener("unhandledrejection", (e) =>
+        showAppError(e.reason?.message || e.reason || "Unhandled browser operation"),
+      );
+      document.querySelectorAll("[data-go-tab]").forEach((button) =>
+        button.addEventListener("click", () => {
+          const tab = button.dataset.goTab;
+          keepActiveTab(tab);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }),
+      );
+      function renderAll() {
+        renderProducts();
+        renderShipments();
+        renderSales();
+        renderExpenses();
+        renderStock();
+        renderDashboard();
+        renderProfit();
+        renderCustomFields();
+        renderCustomize();
+        renderReports();
+        document.getElementById("fxTHB").value = data.settings.inrPerTHB;
+        document.getElementById("fxUSD").value = data.settings.inrPerUSD;
+      }
+
+      function addSaleLine(item = {}) {
+        const host = document.getElementById("saleLinesBody");
+        if (!host) return;
+        const row = document.createElement("tr");
+        row.className = "sale-line";
+        row.innerHTML = `<td><select class="sl-product" required><option value="">Choose product…</option>${data.products
+          .filter((p) => p.active)
+          .map((p) => `<option value="${esc(p.name)}">${esc(p.name)}</option>`)
+          .join("")}</select></td>
+       <td><select class="sl-shipment" required><option value="">Choose shipment / invoice…</option></select></td>
+       <td><input class="sl-qty" type="number" min="0.000001" step="any" required value="${item.qty ?? ""}"></td>
+       <td><input class="sl-rate" type="number" min="0" step="any" required value="${item.rate ?? ""}"></td>
+       <td><input class="sl-tax" type="number" min="0" max="100" step="any" placeholder="0" value="${item.taxPct ?? ""}"></td>
+       <td class="num sl-taxamt">0.00</td>
+       <td class="num sl-basic">0.00</td>
+       <td><button type="button" class="small danger sl-remove">Remove</button></td>`;
+        host.appendChild(row);
+        const product = row.querySelector(".sl-product"),
+          shipment = row.querySelector(".sl-shipment");
+        product.value = item.product || "";
+        function fillShipments() {
+          const previous = item.shipmentId || shipment.value;
+          shipment.innerHTML =
+            '<option value="">Choose shipment / invoice…</option>' +
+            data.shipments
+              .filter((sh) => !product.value || sh.product === product.value)
+              .map(
+                (sh) =>
+                  `<option value="${esc(sh.id)}">${esc(sh.ref || "Purchase " + String(sh.id).slice(-6))} — ${esc(sh.product)} — Remaining: ${qty(num(sh.qty) - data.sales.filter((s) => String(s.shipmentId || "") === String(sh.id) && String(s.id) !== String(val("saleId"))).reduce((a, s) => a + num(s.qty), 0))}</option>`,
+              )
+              .join("");
+          if ([...shipment.options].some((o) => o.value === previous))
+            shipment.value = previous;
+        }
+        fillShipments();
+        product.addEventListener("change", () => {
+          item.shipmentId = "";
+          fillShipments();
+        });
+        shipment.addEventListener("change", () => {
+          const sh = data.shipments.find(
+            (s) => String(s.id) === String(shipment.value),
+          );
+          if (sh) product.value = sh.product;
+        });
+        ["sl-qty", "sl-rate", "sl-tax"].forEach((c) =>
+          row.querySelector("." + c).addEventListener("input", updateSaleTotals),
+        );
+        row.querySelector(".sl-remove").addEventListener("click", () => {
+          if (host.querySelectorAll(".sale-line").length > 1) {
+            row.remove();
+            updateSaleTotals();
+          } else alert("Keep at least one product row in the sale.");
+        });
+        updateSaleTotals();
+      }
+      function fmt2(x) {
+        return num(x).toLocaleString("en-IN", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+      }
+      function updateSaleTotals() {
+        const cur = val("saCurrency") || "THB";
+        let basic = 0,
+          tax = 0;
+        document.querySelectorAll("#saleLinesBody .sale-line").forEach((r) => {
+          const b = round2(
+            num(r.querySelector(".sl-qty").value) *
+              num(r.querySelector(".sl-rate").value),
+          );
+          const t = round2((b * num(r.querySelector(".sl-tax").value)) / 100);
+          r.querySelector(".sl-basic").textContent = fmt2(b);
+          r.querySelector(".sl-taxamt").textContent = fmt2(t);
+          basic += b;
+          tax += t;
+        });
+        const set = (i, v) => {
+          const el = document.getElementById(i);
+          if (el) el.textContent = money(v, cur);
+        };
+        set("saBasicTotal", basic);
+        set("saTaxTotal", tax);
+        set("saGrandTotal", basic + tax);
+      }
+      function getSaleLines() {
+        return [...document.querySelectorAll("#saleLinesBody .sale-line")].map(
+          (row) => ({
+            product: row.querySelector(".sl-product").value,
+            shipmentId: row.querySelector(".sl-shipment").value,
+            qty: num(row.querySelector(".sl-qty").value),
+            rate: num(row.querySelector(".sl-rate").value),
+            taxPct: num(row.querySelector(".sl-tax").value),
+          }),
+        );
+      }
+      function resetSaleLines(items) {
+        const host = document.getElementById("saleLinesBody");
+        if (!host) return;
+        host.innerHTML = "";
+        (items && items.length ? items : [{}]).forEach((item) => addSaleLine(item));
+        updateSaleTotals();
+      }
+
+      function resetForm(type) {
+        let form = document.getElementById(type + "Form");
+        if (form) form.reset();
+        let idel = document.getElementById(
+          type === "product"
+            ? "productId"
+            : type === "shipment"
+              ? "shipmentId"
+              : type === "sale"
+                ? "saleId"
+                : "expenseId",
+        );
+        if (idel) idel.value = "";
+        let title = document.getElementById(type + "FormTitle");
+        if (title)
+          title.textContent = {
+            product: "Add Your Product",
+            shipment: "Add Purchase / Shipment",
+            sale: "Record a Sale",
+            expense: "Add Expense",
+          }[type];
+        if (type === "shipment") {
+          setv("shDate", today());
+          setv("shCurrency", "THB");
+          setv("shFx", fx("THB"));
+          setv("shUnit", "kg");
+        }
+        if (type === "sale") {
+          setv("saDate", today());
+          resetSaleLines();
+          ["saTransport", "saOther", "saReceived"].forEach((k) => setv(k, 0));
+          setv("saCurrency", "THB");
+          setv("saFx", fx("THB"));
+        }
+        if (type === "expense") {
+          setv("exDate", today());
+          setv("exCurrency", "THB");
+          setv("exFx", fx("THB"));
+          setv("exAmount", "");
+        }
+        if (type === "product") {
+          setv("pActive", "true");
+          setv("pUnit", "kg");
+        }
+        renderPreview();
+      }
+      function editRecord(type, recordId) {
+        let arr =
+          type === "product"
+            ? data.products
+            : type === "shipment"
+              ? data.shipments
+              : type === "sale"
+                ? data.sales
+                : data.expenses;
+        let r = arr.find((x) => x.id === recordId);
+        if (!r) return;
+        if (type === "shipment")
+          r = { ...r, rateInv: rateInv(r), rateCash: rateCash(r) };
+        let map =
+          type === "product"
+            ? {
+                productId: "id",
+                pName: "name",
+                pSku: "sku",
+                pUnit: "unit",
+                pCategory: "category",
+                pActive: "active",
+                pNotes: "notes",
+              }
+            : type === "shipment"
+              ? {
+                  shipmentId: "id",
+                  shDate: "date",
+                  shRef: "ref",
+                  shProduct: "product",
+                  shQty: "qty",
+                  shRateInv: "rateInv",
+                  shRateCash: "rateCash",
+                  shCurrency: "currency",
+                  shFx: "fx",
+                  shNotes: "notes",
+                }
+              : type === "sale"
+                ? {
+                    saleId: "id",
+                    saDate: "date",
+                    saBuyer: "buyer",
+                    saCurrency: "currency",
+                    saFx: "fx",
+                    saLocation: "location",
+                    saTransport: "transport",
+                    saOther: "other",
+                    saReceived: "received",
+                    saNotes: "notes",
+                  }
+                : {
+                    expenseId: "id",
+                    exDate: "date",
+                    exCategory: "category",
+                    exDescription: "description",
+                    exAmount: "amount",
+                    exCurrency: "currency",
+                    exFx: "fx",
+                  };
+        Object.entries(map).forEach(([el, k]) => {
+          let v = r[k];
+          if (k === "active") v = String(v !== false);
+          setv(el, v);
+        });
+        if (type === "sale")
+          resetSaleLines([
+            {
+              product: r.product,
+              shipmentId: r.shipmentId,
+              qty: r.qty,
+              rate: r.rate,
+              taxPct: r.taxPct,
+            },
+          ]);
+        setCustomValues(type, r);
+        document.getElementById(type + "FormTitle").textContent =
+          "Edit " +
+          {
+            product: "Product",
+            shipment: "Purchase / Shipment",
+            sale: "Sale",
+            expense: "Expense",
+          }[type];
+        document
+          .querySelector(
+            `[data-tab="${type === "product" ? "products" : type === "shipment" ? "shipments" : type === "sale" ? "sales" : "expenses"}"]`,
+          )
+          .click();
+        renderPreview();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      function deleteRecord(type, recordId) {
+        if (
+          !confirm(
+            "Delete this record? This cannot be undone unless you have a backup.",
+          )
+        )
+          return;
+        if (type === "product") {
+          let p = data.products.find((x) => x.id === recordId);
+          if (
+            data.shipments.some((s) => s.product === p.name) ||
+            data.sales.some((s) => s.product === p.name)
+          ) {
+            alert(
+              "This product has transaction history. Edit it and mark it inactive instead of deleting it.",
+            );
+            return;
+          }
+          data.products = data.products.filter((x) => x.id !== recordId);
+        } else if (type === "shipment")
+          data.shipments = data.shipments.filter((x) => x.id !== recordId);
+        else if (type === "sale")
+          data.sales = data.sales.filter((x) => x.id !== recordId);
+        else data.expenses = data.expenses.filter((x) => x.id !== recordId);
+        save();
+      }
+      function renderPreview() {
+        let cur = val("shCurrency") || "THB",
+          f = num(val("shFx")) || fx(cur),
+          q = num(val("shQty")),
+          ri = num(val("shRateInv")),
+          rc = num(val("shRateCash"));
+        let el = document.getElementById("shPreview");
+        if (el)
+          el.textContent = `Invoice value: ${money(q * ri, cur)} · Cash value: ${money(q * rc, cur)} · Total paid: ${money(q * (ri + rc), cur)} (≈ ${money(q * (ri + rc) * f)})`;
+      }
+      document.getElementById("nav").addEventListener("click", (e) => {
+        let b = e.target.closest("button[data-tab]");
+        if (!b) return;
+        document
+          .querySelectorAll("nav button")
+          .forEach((x) => x.classList.toggle("active", x === b));
+        document
+          .querySelectorAll(".panel")
+          .forEach((x) => x.classList.toggle("active", x.id === b.dataset.tab));
+      });
+      ["shCurrency", "saCurrency", "exCurrency"].forEach((k) =>
+        document.getElementById(k).addEventListener("change", () => {
+          let prefix = k === "shCurrency" ? "sh" : k === "saCurrency" ? "sa" : "ex";
+          setv(prefix + "Fx", fx(val(k)));
+          if (k === "shCurrency") renderPreview();
+          if (k === "saCurrency") updateSaleTotals();
+        }),
+      );
+      ["shQty", "shRateInv", "shRateCash", "shFx"].forEach((k) =>
+        document.getElementById(k).addEventListener("input", renderPreview),
+      );
+
+      function saveProductNow(e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        const activeTabBeforeSave =
+          document.querySelector(".panel.active")?.id || "products";
+        const msg = document.getElementById("productMessage");
+        try {
+          const rid = val("productId");
+          const name = val("pName").trim();
+          const sku = val("pSku").trim();
+          if (!name) {
+            msg.style.display = "block";
+            msg.className = "notice warn";
+            msg.textContent = "Please enter a product name.";
+            document.getElementById("pName").focus();
+            return;
+          }
+          // HSN codes are classification codes and can be shared by multiple products.
+          // Only prevent duplicate product names; allow the same HSN code on different products.
+          const duplicateName = data.products.some(
+            (x) =>
+              String(x.id || "") !== String(rid || "") &&
+              String(x.name || "")
+                .trim()
+                .toLowerCase() === name.toLowerCase(),
+          );
+          if (duplicateName) {
+            msg.style.display = "block";
+            msg.className = "notice warn";
+            msg.textContent =
+              "A product with this name already exists. You can use the same HSN code for different products.";
+            return;
+          }
+          const p = {
+            id: rid || id(),
+            name,
+            sku,
+            unit: val("pUnit"),
+            category: val("pCategory").trim(),
+            active: val("pActive") === "true",
+            notes: val("pNotes").trim(),
+          };
+          const old = data.products.find(
+            (x) => String(x.id || "") === String(rid || ""),
+          );
+          if (old && old.name !== p.name) {
+            data.shipments.forEach((x) => {
+              if (x.product === old.name) x.product = p.name;
+            });
+            data.sales.forEach((x) => {
+              if (x.product === old.name) x.product = p.name;
+            });
+          }
+          if (old)
+            data.products = data.products.map((x) =>
+              String(x.id || "") === String(rid || "") ? p : x,
+            );
+          else data.products.push(p);
+
+          // Always update the list immediately; storage errors must not block the visible result.
+          renderProducts();
+          let savedToBrowser = true;
+          try {
+            localStorage.setItem(KEY, JSON.stringify(data));
+          } catch (storageErr) {
+            savedToBrowser = false;
+            console.error("Browser storage error:", storageErr);
+          }
+          try {
+            refreshProductOptions();
+          } catch (err) {
+            console.error(err);
+          }
+          try {
+            renderShipments();
+            renderSales();
+            renderStock();
+            renderDashboard();
+            renderProfit();
+            renderExpenses();
+          } catch (err) {
+            console.error("Other panel refresh error:", err);
+          }
+          const list = document.getElementById("productsTable");
+          if (list) list.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          resetForm("product");
+          keepActiveTab(activeTabBeforeSave);
+          msg.style.display = "block";
+          msg.className = savedToBrowser ? "notice success" : "notice warn";
+          msg.textContent = savedToBrowser
+            ? "Product saved successfully and displayed in the Product List below."
+            : "Product added to the visible list, but this browser could not store it permanently. Download a backup before closing this page.";
+        } catch (err) {
+          console.error("Save product failed:", err);
+          msg.style.display = "block";
+          msg.className = "notice warn";
+          msg.textContent =
+            "Save failed: " +
+            (err && err.message ? err.message : "unexpected error") +
+            ". Please send a screenshot of this message.";
+        }
+      }
+      document
+        .getElementById("productForm")
+        .addEventListener("submit", saveProductNow);
+
+      function showSaveMessage(type, text, success) {
+        const el = document.getElementById(type + "Message");
+        if (!el) return;
+        el.style.display = "block";
+        el.className = success ? "notice success" : "notice warn";
+        el.textContent = text;
+      }
+      function handleTransactionSave(e, type) {
+        e.preventDefault();
+        e.stopPropagation();
+        const activeTabBeforeSave =
+          document.querySelector(".panel.active")?.id ||
+          (type === "shipment"
+            ? "shipments"
+            : type === "sale"
+              ? "sales"
+              : "expenses");
+        try {
+          let record, list, rid, message;
+          if (type === "shipment") {
+            rid = val("shipmentId");
+            record = {
+              id: rid || id(),
+              date: val("shDate"),
+              ref: val("shRef").trim(),
+              product: val("shProduct"),
+              unit:
+                val("shUnit") ||
+                (data.products.find((p) => p.name === val("shProduct")) || {}).unit ||
+                "kg",
+              qty: num(val("shQty")),
+              rateInv: num(val("shRateInv")),
+              rateCash: num(val("shRateCash")),
+              rate: num(val("shRateInv")) + num(val("shRateCash")),
+              currency: val("shCurrency") || "THB",
+              fx: num(val("shFx")) || fx(val("shCurrency")) || 1,
+              notes: val("shNotes").trim(),
+              custom: readCustomFields("shipment"),
+            };
+            list = data.shipments;
+            if (!record.product) {
+              showSaveMessage(
+                type,
+                "Please save a product first, then select it here.",
+                false,
+              );
+              return;
+            }
+            if (
+              !record.date ||
+              record.qty <= 0 ||
+              record.rateInv < 0 ||
+              record.rateCash < 0 ||
+              !Number.isFinite(record.qty) ||
+              !Number.isFinite(record.rate)
+            ) {
+              showSaveMessage(
+                type,
+                "Enter a date, a product, a quantity greater than zero, and a valid purchase rate.",
+                false,
+              );
+              return;
+            }
+            message =
+              "Purchase saved successfully. It is now listed in Purchase / Shipment Records below.";
+          } else if (type === "sale") {
+            rid = val("saleId");
+            const lines = getSaleLines();
+            const currency = val("saCurrency") || "THB";
+            const common = {
+              date: val("saDate"),
+              buyer: val("saBuyer").trim(),
+              currency,
+              fx: num(val("saFx")) || fx(currency) || 1,
+              location: val("saLocation").trim(),
+              transport: num(val("saTransport")),
+              other: num(val("saOther")),
+              received: num(val("saReceived")),
+              notes: val("saNotes").trim(),
+              custom: readCustomFields("sale"),
+            };
+            list = data.sales;
+            if (!common.date || !common.buyer) {
+              showSaveMessage(type, "Enter the sale date and buyer.", false);
+              return;
+            }
+            if (
+              !lines.length ||
+              lines.some(
+                (x) =>
+                  !x.product ||
+                  !x.shipmentId ||
+                  x.qty <= 0 ||
+                  x.rate < 0 ||
+                  x.taxPct < 0 ||
+                  x.taxPct > 100 ||
+                  !Number.isFinite(x.qty) ||
+                  !Number.isFinite(x.rate),
+              )
+            ) {
+              showSaveMessage(
+                type,
+                "For every row, choose a product and shipment/invoice, then enter a quantity greater than zero, a valid selling rate and a tax % between 0 and 100.",
+                false,
+              );
+              return;
+            }
+            for (const line of lines) {
+              const sh = data.shipments.find(
+                (x) => String(x.id) === String(line.shipmentId),
+              );
+              if (!sh || sh.product !== line.product) {
+                showSaveMessage(
+                  type,
+                  "Each product must match its selected purchase shipment/invoice.",
+                  false,
+                );
+                return;
+              }
+              const alreadySold = data.sales
+                .filter(
+                  (s) =>
+                    String(s.shipmentId || "") === String(sh.id) &&
+                    String(s.id) !== String(rid),
+                )
+                .reduce((a, s) => a + num(s.qty), 0);
+              const requested = lines
+                .filter((x) => String(x.shipmentId) === String(sh.id))
+                .reduce((a, x) => a + num(x.qty), 0);
+              if (requested + alreadySold > num(sh.qty) + 1e-9) {
+                showSaveMessage(
+                  type,
+                  "Not enough stock in shipment " +
+                    (sh.ref || sh.id) +
+                    ". Available before this sale: " +
+                    qty(num(sh.qty) - alreadySold) +
+                    ".",
+                  false,
+                );
+                return;
+              }
+            }
+            const totalValue = lines.reduce(
+              (a, x) => a + x.qty * x.rate * common.fx,
+              0,
+            );
+            const groupId = rid
+              ? (data.sales.find((s) => String(s.id) === String(rid)) || {})
+                  .saleGroupId || rid
+              : id();
+            if (rid)
+              data.sales = data.sales.filter((s) => String(s.id) !== String(rid));
+            lines.forEach((line, index) => {
+              const weight = totalValue
+                ? (line.qty * line.rate * common.fx) / totalValue
+                : 1 / lines.length;
+              data.sales.push({
+                id: id(),
+                saleGroupId: groupId,
+                date: common.date,
+                buyer: common.buyer,
+                product: line.product,
+                shipmentId: line.shipmentId,
+                qty: line.qty,
+                rate: line.rate,
+                taxPct: line.taxPct,
+                taxAmt: round2((round2(line.qty * line.rate) * line.taxPct) / 100),
+                currency: common.currency,
+                fx: common.fx,
+                location: common.location,
+                transport: common.transport * weight,
+                other: common.other * weight,
+                received: common.received * weight,
+                notes: common.notes,
+                custom: common.custom,
+              });
+            });
+            record = null;
+            message =
+              "Sale saved successfully. All product lines have been added to Sales Records.";
+          } else {
+            rid = val("expenseId");
+            record = {
+              id: rid || id(),
+              date: val("exDate"),
+              category: val("exCategory"),
+              description: val("exDescription").trim(),
+              amount: num(val("exAmount")),
+              currency: val("exCurrency") || "THB",
+              fx: num(val("exFx")) || fx(val("exCurrency")) || 1,
+              custom: readCustomFields("expense"),
+            };
+            list = data.expenses;
+            if (
+              !record.date ||
+              record.amount <= 0 ||
+              !Number.isFinite(record.amount)
+            ) {
+              showSaveMessage(
+                type,
+                "Enter a date and an amount greater than zero.",
+                false,
+              );
+              return;
+            }
+            message = "Expense saved successfully. It is now listed below.";
+          }
+          if (type !== "sale") {
+            const index = list.findIndex((x) => String(x.id) === String(rid));
+            if (index >= 0) list[index] = record;
+            else list.push(record);
+          }
+          const saved = save();
+          resetForm(type);
+          keepActiveTab(activeTabBeforeSave);
+          showSaveMessage(
+            type,
+            saved
+              ? message
+              : message +
+                  " Warning: this browser could not save it permanently. Download a backup before closing.",
+            saved,
+          );
+          const tableId =
+            type === "shipment"
+              ? "shipmentsTable"
+              : type === "sale"
+                ? "salesTable"
+                : "expensesTable";
+          const table = document.getElementById(tableId);
+          if (table) table.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        } catch (err) {
+          console.error("Could not save " + type + ":", err);
+          showSaveMessage(
+            type,
+            "Save failed: " +
+              (err && err.message ? err.message : "unexpected error") +
+              ". Please take a screenshot of this message.",
+            false,
+          );
+        }
+      }
+      document
+        .getElementById("shipmentForm")
+        .addEventListener("submit", (e) => handleTransactionSave(e, "shipment"));
+      document
+        .getElementById("saleForm")
+        .addEventListener("submit", (e) => handleTransactionSave(e, "sale"));
+      document
+        .getElementById("addSaleLine")
+        .addEventListener("click", () => addSaleLine());
+      resetSaleLines();
+      document
+        .getElementById("dashShipmentSelect")
+        .addEventListener("change", renderDashboardShipmentProfit);
+      document
+        .getElementById("dashProductSelect")
+        .addEventListener("change", renderDashboardProductProfit);
+
+      document
+        .getElementById("expenseForm")
+        .addEventListener("submit", (e) => handleTransactionSave(e, "expense"));
+      [
+        ["productCancel", "product"],
+        ["shipmentCancel", "shipment"],
+        ["saleCancel", "sale"],
+        ["expenseCancel", "expense"],
+      ].forEach(([b, t]) =>
+        document.getElementById(b).addEventListener("click", () => {
+          resetForm(t);
+          const m = document.getElementById(t + "Message");
+          if (m) {
+            m.textContent = "";
+            m.style.display = "none";
+          }
+        }),
+      );
+      document.getElementById("saveShares").addEventListener("click", () => {
+        let y = num(val("yourShare")),
+          p = num(val("partnerShare"));
+        if (y + p !== 100) {
+          alert("Your share and partner share must add up to 100%.");
+          return;
+        }
+        data.settings.yourShare = y;
+        data.settings.partnerShare = p;
+        save();
+        alert("Profit-sharing percentages saved.");
+      });
+      document.getElementById("saveSettings").addEventListener("click", () => {
+        let t = num(val("fxTHB")),
+          u = num(val("fxUSD"));
+        if (!t || !u) {
+          alert("Exchange rates must be greater than zero.");
+          return;
+        }
+        data.settings.inrPerTHB = t;
+        data.settings.inrPerUSD = u;
+        save();
+        document.getElementById("settingsMessage").innerHTML =
+          '<div class="notice success">Currency settings saved.</div>';
+      });
+
+      document
+        .getElementById("saveDashboardCustomize")
+        .addEventListener("click", () => {
+          (data.settings.dashboardCards || []).forEach((c) => {
+            let label = document.querySelector(`[data-card-label="${c.key}"]`);
+            let show = document.querySelector(`[data-card-show="${c.key}"]`);
+            if (label && label.value.trim()) c.label = label.value.trim();
+            if (show) c.show = show.checked;
+          });
+          save();
+          alert("Dashboard changes saved.");
+        });
+      document.getElementById("saveCostCustomize").addEventListener("click", () => {
+        let next = {};
+        document
+          .querySelectorAll("[data-cost]")
+          .forEach((el) => (next[el.dataset.cost] = el.checked));
+        data.settings.includeCosts = next;
+        save();
+        alert("Landed cost calculation settings saved.");
+      });
+      document.getElementById("addCustomField").addEventListener("click", () => {
+        let name = document.getElementById("cfName").value.trim(),
+          type = document.getElementById("cfType").value,
+          kind = document.getElementById("cfKind").value;
+        if (!name) {
+          alert("Please enter a field name.");
+          return;
+        }
+        if (
+          (data.settings.customFields || []).some(
+            (f) => f.type === type && f.name.toLowerCase() === name.toLowerCase(),
+          )
+        ) {
+          alert("A field with that name already exists in this section.");
+          return;
+        }
+        data.settings.customFields.push({ id: id(), name, type, kind });
+        document.getElementById("cfName").value = "";
+        save();
+        renderCustomize();
+        renderCustomFields();
+        alert("Custom field added. It will appear in new and existing records.");
+      });
+
+      function download(name, content, type) {
+        let blob = new Blob([content], { type }),
+          a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+      document
+        .getElementById("downloadBackup")
+        .addEventListener("click", () =>
+          download(
+            "box-11-trade-backup-" + today() + ".json",
+            JSON.stringify(data, null, 2),
+            "application/json",
+          ),
+        );
+      document.getElementById("restoreFile").addEventListener("change", async (e) => {
+        let f = e.target.files[0];
+        if (!f) return;
+        try {
+          let d = JSON.parse(await f.text());
+          if (!d.products || !d.shipments || !d.sales || !d.expenses || !d.settings)
+            throw Error("Invalid backup");
+          if (
+            !confirm(
+              "Replace all current records with this backup? Download a current backup first if needed.",
+            )
+          )
+            return;
+          data = d;
+          save();
+          alert("Backup restored.");
+        } catch (err) {
+          alert(
+            "Could not restore this file. Please select a valid Box 11 Trade Manager JSON backup.",
+          );
+        }
+        e.target.value = "";
+      });
+      function csv(rows) {
+        if (!rows.length) return "";
+        let keys = [...new Set(rows.flatMap((r) => Object.keys(r)))];
+        return [
+          keys.join(","),
+          ...rows.map((r) =>
+            keys
+              .map((k) => '"' + String(r[k] ?? "").replace(/"/g, '""') + '"')
+              .join(","),
+          ),
+        ].join("\r\n");
+      }
+      [
+        ["exportShipments", "shipments", "purchases.csv"],
+        ["exportSales", "sales", "sales.csv"],
+        ["exportExpenses", "expenses", "expenses.csv"],
+        ["exportProducts", "products", "products.csv"],
+      ].forEach(([btn, key, name]) =>
+        document
+          .getElementById(btn)
+          .addEventListener("click", () =>
+            download(name, csv(data[key]), "text/csv;charset=utf-8"),
+          ),
+      );
+      ["shDate", "saDate", "exDate"].forEach((k) => setv(k, today()));
+      setv("shFx", fx("THB"));
+      setv("saFx", fx("THB"));
+      setv("exFx", fx("THB"));
+      /* ===== Reports ===== */
+      function rpInRange(d, from, to) {
+        return (!from || (d && d >= from)) && (!to || (d && d <= to));
+      }
+      function rpT(x) {
+        return round2(thb(x));
+      }
+      function shipRef(sh) {
+        return sh ? sh.ref || "Purchase " + String(sh.id).slice(-6) : "Not linked";
+      }
+      function rpSumRow(R, cols, width, label) {
+        const row = new Array(width).fill("");
+        row[0] = label;
+        cols.forEach((c) => (row[c] = round2(R.reduce((a, r) => a + num(r[c]), 0))));
+        return row;
+      }
+      function buildReport() {
+        const kind = val("rpKind"),
+          from = val("rpFrom"),
+          to = val("rpTo"),
+          prod = val("rpProduct");
+        const okP = (p) => !prod || p === prod;
+        const byDate = (a, b) =>
+          String(a.date || "").localeCompare(String(b.date || ""));
+        const sales = data.sales
+          .filter((s) => rpInRange(s.date, from, to) && okP(s.product))
+          .sort(byDate);
+        const shipFor = (s) =>
+          data.shipments.find((x) => String(x.id) === String(s.shipmentId));
+        const cogsOf = (s) => {
+          const sh = shipFor(s);
+          return sh ? num(s.qty) * num(sh.rate) * num(sh.fx) : 0;
+        };
+        const costOf = (s) => (num(s.transport) + num(s.other)) * num(s.fx);
+        let title = "",
+          tables = [];
+        if (kind === "sales") {
+          title = "Sales Report";
+          const H = [
+            ["Date", "t"],
+            ["Buyer", "t"],
+            ["Product", "t"],
+            ["Shipment / Invoice", "t"],
+            ["Qty", "q"],
+            ["Rate", "m"],
+            ["Cur", "t"],
+            ["Tax %", "p"],
+            ["Basic (THB)", "m"],
+            ["Tax (THB)", "m"],
+            ["Total (THB)", "m"],
+            ["Received (THB)", "m"],
+            ["Outstanding (THB)", "m"],
+          ];
+          const R = sales.map((s) => {
+            const b = rpT(rev(s)),
+              t = rpT(saleTax(s)),
+              rc = rpT(num(s.received) * num(s.fx));
+            return [
+              s.date,
+              s.buyer,
+              s.product,
+              shipRef(shipFor(s)),
+              num(s.qty),
+              num(s.rate),
+              s.currency,
+              num(s.taxPct),
+              b,
+              t,
+              round2(b + t),
+              rc,
+              round2(b + t - rc),
+            ];
+          });
+          tables.push({
+            name: "Sales",
+            H,
+            R,
+            F: R.length
+              ? [rpSumRow(R, [4, 8, 9, 10, 11, 12], H.length, "Total")]
+              : [],
+          });
+        } else if (kind === "purchases") {
+          title = "Purchase Report";
+          const ships = data.shipments
+            .filter((x) => rpInRange(x.date, from, to) && okP(x.product))
+            .sort(byDate);
+          const H = [
+            ["Date", "t"],
+            ["Reference", "t"],
+            ["Product", "t"],
+            ["Qty", "q"],
+            ["Unit", "t"],
+            ["Rate – Invoice", "m"],
+            ["Rate – Cash", "m"],
+            ["Total Rate", "m"],
+            ["Cur", "t"],
+            ["Invoice Value (THB)", "m"],
+            ["Cash Value (THB)", "m"],
+            ["Total Paid (THB)", "m"],
+          ];
+          const R = ships.map((x) => {
+            const inv = rpT(num(x.qty) * rateInv(x) * num(x.fx)),
+              cash = rpT(num(x.qty) * rateCash(x) * num(x.fx));
+            return [
+              x.date,
+              x.ref || "",
+              x.product,
+              num(x.qty),
+              x.unit || "",
+              rateInv(x),
+              rateCash(x),
+              num(x.rate),
+              x.currency,
+              inv,
+              cash,
+              round2(inv + cash),
+            ];
+          });
+          tables.push({
+            name: "Purchases",
+            H,
+            R,
+            F: R.length ? [rpSumRow(R, [3, 9, 10, 11], H.length, "Total")] : [],
+          });
+        } else if (kind === "profitProduct") {
+          title = "Profit by Product";
+          const names = [...new Set(sales.map((s) => s.product))].sort();
+          const H = [
+            ["Product", "t"],
+            ["Qty Sold", "q"],
+            ["Revenue – Basic (THB)", "m"],
+            ["Cost of Goods (THB)", "m"],
+            ["Sale-level Costs (THB)", "m"],
+            ["Profit (THB)", "m"],
+            ["Margin %", "p"],
+          ];
+          const R = names.map((n) => {
+            const ss = sales.filter((s) => s.product === n);
+            const r = rpT(ss.reduce((a, s) => a + rev(s), 0)),
+              c = rpT(ss.reduce((a, s) => a + cogsOf(s), 0)),
+              sc = rpT(ss.reduce((a, s) => a + costOf(s), 0));
+            const p = round2(r - c - sc);
+            return [
+              n,
+              ss.reduce((a, s) => a + num(s.qty), 0),
+              r,
+              c,
+              sc,
+              p,
+              r ? round2((p / r) * 100) : 0,
+            ];
+          });
+          const F = [];
+          if (R.length) {
+            const tot = rpSumRow(R, [1, 2, 3, 4, 5], H.length, "Total");
+            tot[6] = tot[2] ? round2((tot[5] / tot[2]) * 100) : 0;
+            F.push(tot);
+            if (!prod) {
+              const ex = rpT(
+                data.expenses
+                  .filter((e) => rpInRange(e.date, from, to))
+                  .reduce((a, e) => a + num(e.amount) * num(e.fx), 0),
+              );
+              const l1 = new Array(H.length).fill("");
+              l1[0] = "Less: general expenses in period";
+              l1[5] = -ex;
+              const l2 = new Array(H.length).fill("");
+              l2[0] = "Net profit / loss";
+              l2[5] = round2(tot[5] - ex);
+              F.push(l1, l2);
+            }
+          }
+          tables.push({ name: "Profit by Product", H, R, F });
+        } else if (kind === "profitShipment") {
+          title = "Profit by Shipment / Invoice";
+          const ids = [...new Set(sales.map((s) => String(s.shipmentId || "")))];
+          const H = [
+            ["Shipment / Invoice", "t"],
+            ["Product", "t"],
+            ["Purchase Date", "t"],
+            ["Purchased Qty", "q"],
+            ["Qty Sold (period)", "q"],
+            ["Qty Remaining (overall)", "q"],
+            ["Revenue – Basic (THB)", "m"],
+            ["Cost of Goods (THB)", "m"],
+            ["Sale-level Costs (THB)", "m"],
+            ["Profit (THB)", "m"],
+          ];
+          const R = ids.map((i) => {
+            const sh = data.shipments.find((x) => String(x.id) === i);
+            const ss = sales.filter((s) => String(s.shipmentId || "") === i);
+            const r = rpT(ss.reduce((a, s) => a + rev(s), 0)),
+              c = rpT(ss.reduce((a, s) => a + cogsOf(s), 0)),
+              sc = rpT(ss.reduce((a, s) => a + costOf(s), 0));
+            const sold = ss.reduce((a, s) => a + num(s.qty), 0);
+            return [
+              shipRef(sh),
+              sh ? sh.product : (ss[0] || {}).product,
+              sh ? sh.date : "",
+              sh ? num(sh.qty) : 0,
+              sold,
+              sh ? num(sh.qty) - shipmentSold(sh.id, "") : 0,
+              r,
+              c,
+              sc,
+              round2(r - c - sc),
+            ];
+          });
+          tables.push({
+            name: "Profit by Shipment",
+            H,
+            R,
+            F: R.length ? [rpSumRow(R, [4, 6, 7, 8, 9], H.length, "Total")] : [],
+          });
+        } else if (kind === "stock") {
+          title = "Stock Report" + (to ? " as on " + to : "");
+          const H = [
+            ["Product", "t"],
+            ["Unit", "t"],
+            ["Purchased", "q"],
+            ["Sold", "q"],
+            ["Remaining", "q"],
+            ["Avg Cost / Unit (THB)", "m"],
+            ["Stock Value (THB)", "m"],
+          ];
+          const names = [
+            ...new Set([
+              ...data.products.map((p) => p.name),
+              ...data.shipments.map((s) => s.product),
+            ]),
+          ]
+            .filter((n) => n && okP(n))
+            .sort();
+          const R = names.map((n) => {
+            const sh = data.shipments.filter(
+              (x) => x.product === n && (!to || (x.date && x.date <= to)),
+            );
+            const sl = data.sales.filter(
+              (x) => x.product === n && (!to || (x.date && x.date <= to)),
+            );
+            const pq = sh.reduce((a, x) => a + num(x.qty), 0),
+              sq = sl.reduce((a, x) => a + num(x.qty), 0);
+            const cost = sh.reduce(
+              (a, x) => a + num(x.qty) * num(x.rate) * num(x.fx),
+              0,
+            );
+            const avg = pq ? rpT(cost / pq) : 0;
+            const unit =
+              (data.products.find((p) => p.name === n) || {}).unit ||
+              (sh[0] || {}).unit ||
+              "kg";
+            return [n, unit, pq, sq, pq - sq, avg, round2((pq - sq) * avg)];
+          });
+          tables.push({
+            name: "Stock",
+            H,
+            R,
+            F: R.length ? [rpSumRow(R, [2, 3, 4, 6], H.length, "Total")] : [],
+          });
+        } else {
+          title = "Tax Summary (sales tax collected)";
+          const mk = (name, keyFn, label) => {
+            const g = {};
+            sales.forEach((s) => {
+              const k = keyFn(s);
+              g[k] ??= { n: 0, b: 0, t: 0 };
+              g[k].n++;
+              g[k].b += rpT(rev(s));
+              g[k].t += rpT(saleTax(s));
+            });
+            const H = [
+              [label, "t"],
+              ["Lines", "n"],
+              ["Basic (THB)", "m"],
+              ["Tax (THB)", "m"],
+              ["Total (THB)", "m"],
+            ];
+            const R = Object.keys(g)
+              .sort((a, b) =>
+                String(a).localeCompare(String(b), undefined, { numeric: true }),
+              )
+              .map((k) => [
+                label === "Tax %" ? num(k) + "%" : k,
+                g[k].n,
+                round2(g[k].b),
+                round2(g[k].t),
+                round2(g[k].b + g[k].t),
+              ]);
+            return {
+              name,
+              H,
+              R,
+              F: R.length ? [rpSumRow(R, [1, 2, 3, 4], H.length, "Total")] : [],
+            };
+          };
+          tables.push(mk("By Tax Rate", (s) => num(s.taxPct), "Tax %"));
+          tables.push(
+            mk("By Month", (s) => String(s.date || "").slice(0, 7) || "—", "Month"),
+          );
+        }
+        return { title, tables, from, to };
+      }
+      function rpFmt(v, t) {
+        if (v === "" || v === null || v === undefined) return "";
+        if (typeof v === "string") return esc(v);
+        if (t === "m") return fmt2(v);
+        if (t === "q") return qty(v);
+        if (t === "p")
+          return num(v).toLocaleString("en-IN", { maximumFractionDigits: 2 }) + "%";
+        return esc(v);
+      }
+      function renderReports() {
+        const out = document.getElementById("rpOut");
+        if (!out) return;
+        const sel = document.getElementById("rpProduct"),
+          prev = sel.value;
+        const names = [
+          ...new Set([
+            ...data.products.map((p) => p.name),
+            ...data.shipments.map((s) => s.product),
+            ...data.sales.map((s) => s.product),
+          ]),
+        ]
+          .filter(Boolean)
+          .sort();
+        const optHtml =
+          '<option value="">All products</option>' +
+          names.map((n) => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+        if (sel.dataset.sig !== optHtml) {
+          sel.innerHTML = optHtml;
+          sel.dataset.sig = optHtml;
+          if (names.includes(prev)) sel.value = prev;
+        }
+        const rep = buildReport();
+        const range =
+          rep.from || rep.to
+            ? `${rep.from || "start"} to ${rep.to || "today"}`
+            : "All dates";
+        out.innerHTML =
+          `<h2>${esc(rep.title)}</h2><p class="muted">${esc(range)}${val("rpProduct") ? " · Product: " + esc(val("rpProduct")) : ""} · Amounts in THB (basic = before tax)</p>` +
+          rep.tables
+            .map((t) => {
+              const head = `<h3 style="margin-top:14px">${esc(t.name)}</h3>`;
+              if (!t.R.length)
+                return (
+                  head +
+                  '<div class="empty">No records for the selected filters.</div>'
+                );
+              const cls = (h) => (h[1] === "t" ? "" : ' class="num"');
+              return (
+                head +
+                '<div class="table-wrap"><table><thead><tr>' +
+                t.H.map((h) => `<th${cls(h)}>${esc(h[0])}</th>`).join("") +
+                "</tr></thead><tbody>" +
+                t.R.map(
+                  (r) =>
+                    "<tr>" +
+                    r
+                      .map((v, i) => `<td${cls(t.H[i])}>${rpFmt(v, t.H[i][1])}</td>`)
+                      .join("") +
+                    "</tr>",
+                ).join("") +
+                t.F.map(
+                  (r) =>
+                    '<tr class="total-row">' +
+                    r
+                      .map((v, i) => `<td${cls(t.H[i])}>${rpFmt(v, t.H[i][1])}</td>`)
+                      .join("") +
+                    "</tr>",
+                ).join("") +
+                "</tbody></table></div>"
+              );
+            })
+            .join("");
+      }
+      function rpSheetRows(rep, t) {
+        const range =
+          rep.from || rep.to
+            ? `${rep.from || "start"} to ${rep.to || "today"}`
+            : "All dates";
+        return [
+          [rep.title + " — " + range],
+          [],
+          t.H.map((h) => h[0]),
+          ...t.R,
+          ...t.F,
+        ];
+      }
+      function rpExportCsv() {
+        const rep = buildReport();
+        const q = (v) => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+        const text = rep.tables
+          .map((t) =>
+            rpSheetRows(rep, t)
+              .map((r) => r.map(q).join(","))
+              .join("\r\n"),
+          )
+          .join("\r\n\r\n");
+        download(
+          "report-" + val("rpKind") + "-" + today() + ".csv",
+          "\ufeff" + text,
+          "text/csv;charset=utf-8",
+        );
+      }
+      function rpExportXlsx() {
+        if (typeof XLSX === "undefined") {
+          alert(
+            "Excel library could not load (no internet?). Exporting CSV instead.",
+          );
+          return rpExportCsv();
+        }
+        const rep = buildReport(),
+          wb = XLSX.utils.book_new();
+        rep.tables.forEach((t) => {
+          const ws = XLSX.utils.aoa_to_sheet(rpSheetRows(rep, t));
+          ws["!cols"] = t.H.map(() => ({ wch: 18 }));
+          XLSX.utils.book_append_sheet(
+            wb,
+            ws,
+            String(t.name || "Report")
+              .replace(/[\\\/\?\*\[\]:]/g, "")
+              .slice(0, 31),
+          );
+        });
+        XLSX.writeFile(wb, "report-" + val("rpKind") + "-" + today() + ".xlsx");
+      }
+      ["rpKind", "rpFrom", "rpTo", "rpProduct"].forEach((k) => {
+        const el = document.getElementById(k);
+        if (el) {
+          el.addEventListener("change", renderReports);
+          el.addEventListener("input", renderReports);
+        }
+      });
+      document.querySelectorAll("[data-rp-preset]").forEach((b) =>
+        b.addEventListener("click", () => {
+          const n = new Date(),
+            y = n.getFullYear(),
+            m = n.getMonth(),
+            iso = (d) =>
+              new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+                .toISOString()
+                .slice(0, 10);
+          let f = "",
+            t = "";
+          const p = b.dataset.rpPreset;
+          if (p === "month") {
+            f = iso(new Date(y, m, 1));
+            t = iso(new Date(y, m + 1, 0));
+          } else if (p === "lastmonth") {
+            f = iso(new Date(y, m - 1, 1));
+            t = iso(new Date(y, m, 0));
+          } else if (p === "fy") {
+            const sy = m >= 3 ? y : y - 1;
+            f = iso(new Date(sy, 3, 1));
+            t = iso(new Date(sy + 1, 2, 31));
+          }
+          setv("rpFrom", f);
+          setv("rpTo", t);
+          renderReports();
+        }),
+      );
+      document.getElementById("rpCsv").addEventListener("click", rpExportCsv);
+      document.getElementById("rpXlsx").addEventListener("click", rpExportXlsx);
+      document
+        .getElementById("rpPrint")
+        .addEventListener("click", () => window.print());
+
+      renderAll();
+    </script>
+
+    <script>
+      (function () {
+        const $ = (id) => document.getElementById(id);
+        const msg = (text) => {
+          const el = $("appError");
+          el.style.display = "block";
+          el.textContent = text;
+        };
+        const sb = supabase.createClient();
+        const APP_KEY = "box11TradeManagerFreshStart20261016"; // same key app.js uses
+        const KEYS = ["products", "shipments", "sales", "expenses", "settings"];
+        const TABS = [
+          ["dashboard", "Dashboard"],
+          ["products", "Products"],
+          ["shipments", "Purchases"],
+          ["stock", "Stock"],
+          ["sales", "Sales"],
+          ["expenses", "Expenses & Profit"],
+          ["reports", "Reports"],
+          ["settings", "Settings"],
+          ["customize", "Customize Software"],
+          ["backup", "Backup / Restore"],
+        ];
+        const esc = (s) =>
+          String(s ?? "").replace(
+            /[&<>"']/g,
+            (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+          );
+
+        let me = null,
+          versions = {},
+          snapshot = {},
+          pushTimer = null,
+          pushing = false,
+          again = false,
+          started = false;
+        const setSync = (t) => {
+          $("syncState").textContent = t;
+        };
+        const snap = (d) => {
+          const o = {};
+          KEYS.forEach((k) => {
+            o[k] = JSON.stringify(d[k] ?? null);
+          });
+          return o;
+        };
+
+        // ---- cache + save interception -------------------------------------
+        const origSet = Storage.prototype.setItem;
+        Storage.prototype.setItem = function (k, v) {
+          origSet.call(this, k, v);
+          if (k === APP_KEY && me) {
+            setSync("Saving…");
+            clearTimeout(pushTimer);
+            pushTimer = setTimeout(pushNow, 700);
+          }
+        };
+
+        async function pushNow() {
+          if (pushing) {
+            again = true;
+            return;
+          }
+          pushing = true;
+          clearTimeout(pushTimer);
+          pushTimer = null;
+          try {
+            const raw = localStorage.getItem(APP_KEY);
+            if (!raw) return;
+            const cur = JSON.parse(raw),
+              patch = {},
+              base = {};
+            KEYS.forEach((k) => {
+              if (JSON.stringify(cur[k] ?? null) !== snapshot[k]) {
+                patch[k] = cur[k];
+                base[k] = versions[k] || 0;
+              }
+            });
+            if (!Object.keys(patch).length) {
+              setSync("✓ Saved to cloud");
+              return;
+            }
+            const { data, error } = await sb.rpc("save_business_data", { patch, base_versions: base });
+            if (error) throw error;
+            versions = data || versions;
+            Object.keys(patch).forEach((k) => {
+              snapshot[k] = JSON.stringify(patch[k]);
+            });
+            setSync("✓ Saved to cloud");
+          } catch (e) {
+            const m = String(e.message || e);
+            if (m.includes("VERSION_CONFLICT")) {
+              await loadFromServer();
+              alert(
+                "Someone else changed this data at the same time. The latest data has been loaded — please repeat your last change.",
+              );
+            } else if (m.includes("NOT_ALLOWED")) {
+              await loadFromServer();
+              alert("You do not have permission to change that. Your last change was not saved.");
+            } else {
+              console.error(e);
+              setSync("⚠ Not saved — check your connection");
+            }
+          } finally {
+            pushing = false;
+            if (again) {
+              again = false;
+              pushNow();
+            }
+          }
+        }
+
+        async function fetchServer() {
+          const { data, error } = await sb.rpc("get_business_data");
+          if (error) throw error;
+          return data;
+        }
+        // Replace the on-screen data with what the server has.
+        async function loadFromServer(quiet) {
+          try {
+            const res = await fetchServer();
+            versions = res.versions || {};
+            applyExternalData(res.data); // defined in app.js
+            snapshot = snap(data); // `data` is app.js's global
+            origSet.call(localStorage, APP_KEY, JSON.stringify(data));
+            setSync(quiet ? "✓ Up to date" : "✓ Loaded from cloud");
+          } catch (e) {
+            console.error(e);
+            setSync("⚠ Could not refresh");
+          }
+        }
+
+        // ---- access control (screen side; the database enforces it too) ----
+        const lvl = (tab) =>
+          me.role === "admin" ? 2 : { edit: 2, view: 1 }[(me.permissions || {})[tab]] || 0;
+
+        function applyAccess() {
+          const nav = $("nav");
+          if (me.role === "admin" && !nav.querySelector('[data-tab="users"]')) {
+            const b = document.createElement("button");
+            b.dataset.tab = "users";
+            b.textContent = "Users & Access";
+            nav.appendChild(b);
+          }
+          TABS.forEach(([tab]) => {
+            const btn = nav.querySelector(`[data-tab="${tab}"]`),
+              panel = $(tab);
+            const l = lvl(tab);
+            if (btn) btn.classList.toggle("ro-hidden", l === 0);
+            if (!panel) return;
+            if (l === 1) {
+              panel.classList.add("ro");
+              panel.querySelectorAll("form").forEach((f) => {
+                const c = f.closest(".card");
+                if (c) c.classList.add("ro-hidden");
+              });
+              if (tab === "settings" || tab === "customize") {
+                panel.classList.add("lock");
+                panel.querySelectorAll("input,select,textarea,button").forEach((el) => {
+                  el.disabled = true;
+                });
+              }
+              if (tab === "expenses")
+                ["#yourShare", "#partnerShare", "#saveShares"].forEach((sel) => {
+                  const el = panel.querySelector(sel);
+                  if (el) el.disabled = true;
+                });
+            }
+          });
+          // quick-action buttons on the dashboard
+          document.querySelectorAll("[data-go-tab]").forEach((b) => {
+            if (lvl(b.dataset.goTab) < 2) b.classList.add("ro-hidden");
+          });
+          // restore is admin-only
+          if (me.role !== "admin") {
+            const lab = document.querySelector('label[for="restoreFile"]');
+            if (lab) lab.classList.add("ro-hidden");
+            const warn = document.querySelector("#backup .notice.warn");
+            if (warn) warn.classList.add("ro-hidden");
+          }
+          // make sure we are on a tab the person may open
+          const active = nav.querySelector("button.active");
+          if (!active || active.classList.contains("ro-hidden")) {
+            const first = [...nav.querySelectorAll("button[data-tab]")].find(
+              (b) => !b.classList.contains("ro-hidden"),
+            );
+            if (first) first.click();
+          }
+        }
+
+        // ---- admin: Users & Access panel -----------------------------------
+        const LEVELS = [["none", "No access"], ["view", "View only"], ["edit", "Edit"]];
+        const hasAccess = (p) => Object.values(p || {}).some((v) => v === "view" || v === "edit");
+        const permGrid = (perms, off) =>
+          `<div class="grid ugrid">${TABS.map(([t, label]) => `<div><label>${esc(label)}</label><select class="u-perm" data-tab="${t}" ${off ? "disabled" : ""}>${LEVELS.map(([v, l]) => `<option value="${v}" ${((perms || {})[t] || "none") === v ? "selected" : ""}>${l}</option>`).join("")}</select></div>`).join("")}</div>
+          <div class="actions"><button type="button" class="small" data-preset="edit">Everything: Edit</button><button type="button" class="small" data-preset="view">Everything: View only</button><button type="button" class="small" data-preset="none">No access</button></div>`;
+        const readPerms = (card) => {
+          const o = {};
+          card.querySelectorAll(".u-perm").forEach((s) => (o[s.dataset.tab] = s.value));
+          return o;
+        };
+        function usersMsg(t, good) {
+          const el = $("usersMsg");
+          el.style.display = "block";
+          el.className = "notice " + (good ? "success" : "warn");
+          el.textContent = t;
+          el.scrollIntoView({ block: "nearest" });
+        }
+        // Creating logins needs a secret key, so it runs on the server (/api/admin-users).
+        async function adminApi(action, payload) {
+          const { data } = await sb.auth.getSession();
+          const r = await fetch("/api/admin-users", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + (data?.session?.access_token || "") },
+            body: JSON.stringify({ action, ...payload }),
+          });
+          const j = await r.json().catch(() => ({}));
+          return r.ok ? j : { error: j.error || "Request failed (" + r.status + ")" };
+        }
+        async function renderUsers() {
+          const host = $("usersList");
+          if (!host) return;
+          if (!$("nuPerms").innerHTML) $("nuPerms").innerHTML = permGrid({}, false);
+          host.innerHTML = '<div class="card muted">Loading…</div>';
+          const { data: rows, error } = await sb
+            .from("profiles")
+            .select("id,email,username,full_name,role,permissions,disabled,created_at")
+            .order("created_at");
+          if (error) {
+            host.innerHTML = '<div class="card">Could not load users: ' + esc(error.message) + "</div>";
+            return;
+          }
+          host.innerHTML =
+            rows
+              .map((u) => {
+                const self = u.id === me.id, isAdmin = u.role === "admin";
+                return `<div class="card user-card" data-uid="${esc(u.id)}">
+        <div class="uhead"><b>${esc(u.username || u.email)}</b>${self ? '<span class="muted">(you)</span>' : ""}${u.disabled ? '<span class="tag off">Disabled</span>' : ""}${!isAdmin && !hasAccess(u.permissions) ? '<span class="tag">No access yet</span>' : ""}</div>
+        <div class="grid ugrid" style="margin-bottom: 12px">
+          <div><label>Display name</label><input class="u-name" value="${esc(u.full_name)}" placeholder="Name" /></div>
+          <div><label>Role</label><select class="u-role" ${self ? "disabled" : ""}><option value="user" ${!isAdmin ? "selected" : ""}>User</option><option value="admin" ${isAdmin ? "selected" : ""}>Admin (all rights)</option></select></div>
+          <div><label>Status</label><select class="u-status" ${self ? "disabled" : ""}><option value="active" ${!u.disabled ? "selected" : ""}>Active</option><option value="disabled" ${u.disabled ? "selected" : ""}>Disabled (cannot sign in)</option></select></div>
+          <div><label>New password (blank = keep)</label><input class="u-pass" autocomplete="new-password" placeholder="min 8 characters" /></div>
+        </div>
+        ${permGrid(u.permissions, isAdmin)}
+        <div class="actions"><button type="button" class="primary" data-save>Save changes</button>${self ? "" : '<button type="button" class="danger" data-del>Delete user</button>'}</div>
+      </div>`;
+              })
+              .join("") || '<div class="card empty">No users yet.</div>';
+        }
+        document.addEventListener("change", (e) => {
+          if (!e.target.classList.contains("u-role")) return;
+          const card = e.target.closest(".user-card");
+          card && card.querySelectorAll(".u-perm").forEach((s) => (s.disabled = e.target.value === "admin"));
+        });
+        document.addEventListener("click", async (e) => {
+          const t = e.target;
+          if (t.id === "usersRefresh" || t.matches('#nav [data-tab="users"]')) return renderUsers();
+          if (t.id === "nuGen") {
+            const c = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            $("nuPass").value = [...crypto.getRandomValues(new Uint32Array(12))].map((n) => c[n % c.length]).join("");
+            return;
+          }
+          if (t.id === "nuCreate") {
+            const username = $("nuUser").value.trim().toLowerCase(), password = $("nuPass").value;
+            if (!/^[a-z0-9._-]{3,30}$/.test(username))
+              return usersMsg("Username must be 3–30 characters: lowercase letters, numbers, . _ - only.", false);
+            if (password.length < 8) return usersMsg("Password must be at least 8 characters.", false);
+            t.disabled = true;
+            const res = await adminApi("create", {
+              username, password, full_name: $("nuName").value.trim(), role: $("nuRole").value,
+              permissions: readPerms($("newUserCard")),
+            });
+            t.disabled = false;
+            if (res.error) return usersMsg(res.error, false);
+            usersMsg(`User "${username}" created. Give them the username and password so they can sign in.`, true);
+            ["nuUser", "nuName", "nuPass"].forEach((id) => ($(id).value = ""));
+            return renderUsers();
+          }
+          const card = t.closest(".user-card");
+          if (!card) return;
+          if (t.dataset.preset) return card.querySelectorAll(".u-perm").forEach((s) => (s.value = t.dataset.preset));
+          if (card.id === "newUserCard") return;
+          const id = card.dataset.uid;
+          if (t.hasAttribute("data-save")) {
+            const p = { id, full_name: card.querySelector(".u-name").value.trim(), role: card.querySelector(".u-role").value,
+              disabled: card.querySelector(".u-status").value === "disabled", permissions: readPerms(card) };
+            const pw = card.querySelector(".u-pass").value;
+            if (pw) {
+              if (pw.length < 8) return usersMsg("New password must be at least 8 characters.", false);
+              p.password = pw;
+            }
+            const res = await adminApi("update", p);
+            if (res.error) return usersMsg("Could not save: " + res.error, false);
+            usersMsg("Saved. Permission changes apply the next time that person opens or refreshes the app.", true);
+            renderUsers();
+          }
+          if (t.hasAttribute("data-del")) {
+            const name = card.querySelector(".uhead b").textContent;
+            if (!confirm(`Delete user "${name}"? This cannot be undone. (To just block them, set Status to Disabled.)`)) return;
+            const res = await adminApi("delete", { id });
+            if (res.error) return usersMsg("Could not delete: " + res.error, false);
+            usersMsg(`User "${name}" deleted.`, true);
+            renderUsers();
+          }
+        });
+
+        // ---- start / stop --------------------------------------------------
+        async function startApp(session) {
+          if (started) return;
+          started = true;
+          let res;
+          try {
+            res = await fetchServer();
+          } catch (e) {
+            started = false;
+            msg("Could not load data: " + (e.message || e) + "\nHave you run schema.sql in Supabase?");
+            return;
+          }
+          me = { id: session.user.id, role: res.role, permissions: res.permissions || {}, email: res.email };
+          const any =
+            me.role === "admin" || Object.values(me.permissions).some((v) => v === "view" || v === "edit");
+          if (!any) {
+            started = false;
+            me = null;
+            msg(
+              "Your account is created, but the admin has not given you access yet.\nAsk your admin to open Users & Access, then sign in again.",
+            );
+            await sb.auth.signOut();
+            return;
+          }
+          localStorage.removeItem(APP_KEY);
+          origSet.call(localStorage, APP_KEY, JSON.stringify(res.data));
+          versions = res.versions || {};
+          $("userBar").style.display = "flex";
+          $("userEmail").textContent = me.email + (me.role === "admin" ? " · Admin" : "");
+          setSync("✓ Loaded from cloud");
+          // Run the app code (kept in <script id="appSource"> below).
+          const s = document.createElement("script");
+          s.textContent = $("appSource").textContent;
+          document.body.appendChild(s);
+
+          snapshot = snap(data); // after the app has normalised the data
+          applyAccess();
+          setInterval(poll, 15000);
+          document.addEventListener("visibilitychange", () => {
+            if (!document.hidden) poll();
+          });
+        }
+
+        async function poll() {
+          if (!me || pushing || pushTimer) return;
+          try {
+            const res = await fetchServer();
+            if (
+              res.role !== me.role ||
+              JSON.stringify(res.permissions || {}) !== JSON.stringify(me.permissions)
+            )
+              return location.reload();
+            if (JSON.stringify(res.versions || {}) !== JSON.stringify(versions)) {
+              versions = res.versions || {};
+              applyExternalData(res.data);
+              snapshot = snap(data);
+              origSet.call(localStorage, APP_KEY, JSON.stringify(data));
+              setSync("✓ Updated from cloud");
+            }
+          } catch (e) {
+            /* offline: try again next time */
+          }
+        }
+
+        $("btnLogout").onclick = async () => {
+          if (pushTimer) await pushNow();
+          await sb.auth.signOut();
+          localStorage.removeItem(APP_KEY);
+          location.reload();
+        };
+        window.addEventListener("beforeunload", () => {
+          if (pushTimer) pushNow();
+        });
+        // Preview: no login screen, start straight away as the demo user.
+        const lb = $("loginBox");
+        async function boot() {
+          const { data } = await sb.auth.getSession();
+          if (!data.session) {
+            lb.style.display = "flex";
+            return;
+          }
+          lb.style.display = "none";
+          await startApp(data.session);
+          if (!started) {
+            lb.style.display = "flex";
+            $("loginErr").style.display = "block";
+            $("loginErr").textContent = $("appError").textContent || "Could not sign in.";
+          }
+        }
+        $("loginForm").onsubmit = async (e) => {
+          e.preventDefault();
+          const id = $("lgUser").value.trim().toLowerCase();
+          const email = id.includes("@") ? id : id + "@users.box11.app";
+          const { error } = await sb.auth.signInWithPassword({ email, password: $("lgPass").value });
+          if (error) {
+            $("loginErr").style.display = "block";
+            $("loginErr").textContent = "Wrong username or password.";
+            return;
+          }
+          $("loginErr").style.display = "none";
+          $("appError").style.display = "none";
+          boot();
+        };
+        boot();
+      })();
+    </script>
+  </body>
+</html>
