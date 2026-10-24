@@ -1143,12 +1143,14 @@
           if (s.unit) map[k].unit = s.unit;
         });
         data.sales.forEach((s) => {
-          const k = keyOf(s.product);
+          const shipment = data.shipments.find((x) => String(x.id) === String(s.shipmentId));
+          const product = shipment?.product || s.product;
+          const k = keyOf(product);
           if (!k) return;
           if (!map[k])
             map[k] = {
-              product: s.product,
-              unit: s.unit || "kg",
+              product,
+              unit: shipment?.unit || s.unit || "kg",
               opening: 0,
               received: 0,
               sold: 0,
@@ -1908,6 +1910,7 @@
         document
           .querySelectorAll(".panel")
           .forEach((x) => x.classList.toggle("active", x.id === b.dataset.tab));
+        if (b.dataset.tab === "stock") renderStock();
       });
       ["shCurrency", "saCurrency", "exCurrency"].forEach((k) =>
         document.getElementById(k).addEventListener("change", () => {
@@ -2152,6 +2155,7 @@
             else list.push(record);
           }
           const saved = save();
+          if (type === "sale") renderStock();
           resetForm(type);
           keepActiveTab(activeTabBeforeSave);
           showSaveMessage(
