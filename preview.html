@@ -312,6 +312,15 @@
       .sale-table {
         min-width: 900px;
       }
+      #purchaseLinesBody input[type=number], #purchaseTotals .metric .value { text-align: right; }
+      #purchaseLinesBody select { min-width: 145px; }
+      #purchaseTotals { gap: 8px; margin-top: 10px; }
+      #purchaseTotals .metric { padding: 11px 12px; }
+      #purchaseTotals .metric .label { font-size: 11px; }
+      #purchaseTotals .metric .value { font-size: 18px; margin-top: 4px; }
+      .purchase-grand-total { border: 1px solid #b8c7da; background: #f0f6ff; border-radius: 10px; padding: 14px; }
+      #purchaseTotals .purchase-grand-total { padding: 11px 12px; }
+      #purchaseTotals .purchase-grand-total strong { color: #123c78; font-size: 18px; }
       .sale-table td {
         padding: 6px;
         vertical-align: middle;
@@ -573,54 +582,29 @@
           <h2 id="shipmentFormTitle">Add Purchase / Shipment</h2>
           <form id="shipmentForm">
             <input type="hidden" id="shipmentId" />
-            <div class="grid">
-              <div><label>Date *</label><input type="date" id="shDate" required /></div>
-              <div><label>Shipment / invoice reference</label><input id="shRef" /></div>
-              <div>
-                <label>Product *</label
-                ><select id="shProduct" required></select>
-              </div>
-              <div>
-                <label>Purchased quantity *</label
-                ><input type="number" min="0.000001" step="any" id="shQty" required />
-              </div>
-              <div>
-                <label>Purchase unit *</label
-                ><select id="shUnit" required>
-                  <option>kg</option>
-                  <option>tonne</option>
-                  <option>bag</option>
-                  <option>box</option>
-                  <option>piece</option>
-                  <option>litre</option>
-                  <option>drum</option>
-                  <option>other</option>
-                </select>
-              </div>
-              <div>
-                <label>Purchase rate per unit — as per invoice *</label
-                ><input type="number" min="0" step="any" id="shRateInv" required />
-              </div>
-              <div>
-                <label>Purchase rate per unit — cash</label
-                ><input type="number" min="0" step="any" id="shRateCash" value="0" />
-              </div>
-              <div>
-                <label>Currency</label
-                ><select id="shCurrency">
-                  <option selected>THB</option>
-                  <option>INR</option>
-                  <option>USD</option>
-                </select>
-              </div>
-              <div style="display: none"><input type="number" min="0.000001" step="any" id="shFx" /></div>
-              <div><label>Notes</label><input id="shNotes" /></div>
+            <div class="grid purchase-header">
+              <div><label>Purchase Invoice Number</label><input id="shRef" placeholder="Invoice number" /></div>
+              <div><label>Purchase Date *</label><input type="date" id="shDate" required /></div>
+              <div><label>Currency</label><select id="shCurrency"><option>THB</option><option>INR</option><option>USD</option><option>EUR</option></select></div>
+              <div><label>Notes</label><input id="shNotes" placeholder="Optional" /></div>
+              <div style="display:none"><input type="number" id="shFx" /></div>
             </div>
+            <div id="purchaseBatchFields">
+              <h3>Product line items</h3>
+              <div class="table-wrap"><table class="sale-table purchase-table"><thead><tr><th>Product</th><th>Quantity</th><th>Unit</th><th>Invoice rate</th><th>Cash rate</th><th>Import duty</th><th>VAT rate %</th><th>Transport</th><th>Warehouse</th><th>Misc.</th><th>VAT</th><th>Landed total</th><th></th></tr></thead><tbody id="purchaseLinesBody"></tbody></table></div>
+              <div class="actions"><button type="button" id="addPurchaseLine">+ Add Product Row</button></div>
+            </div>
+            <div class="grid" style="display:none">
+              <div><label>Product *</label><select id="shProduct"></select></div><div><label>Purchased quantity *</label><input type="number" id="shQty" /></div>
+              <div><label>Purchase unit *</label><select id="shUnit"><option>kg</option><option>tonne</option><option>bag</option><option>box</option><option>piece</option><option>litre</option><option>drum</option><option>other</option></select></div>
+              <div><label>Invoice rate *</label><input type="number" id="shRateInv" /></div><div><label>Cash rate</label><input type="number" id="shRateCash" /></div>
+              <div><input type="number" id="shDutyPct" value="0" /></div><div><input type="number" id="shTransport" value="0" /></div><div><input type="number" id="shClearance" value="0" /></div><div><input type="number" id="shMisc" value="0" /></div>
+            </div>
+            <div id="purchaseTotals" class="metrics"></div>
             <div id="customFields-shipment" class="grid"></div>
-            <div class="notice" id="shPreview">Purchase value preview will appear here.</div>
             <div class="actions">
-              <button class="primary" type="submit">Save Shipment</button
-              ><button type="button" id="shipmentCancel">Clear</button>
+              <button class="primary" type="submit">Save Purchase</button
+              ><button type="button" id="shipmentCancel">Reset / Clear Form</button>
             </div>
             <div
               id="shipmentMessage"
@@ -632,7 +616,8 @@
           </form>
         </div>
         <div class="card">
-          <h2>Purchase / Shipment Records</h2>
+          <h2>Purchase Transactions</h2>
+          <div class="grid"><div><label>Search invoice / product</label><input id="purchaseSearch" placeholder="Search purchases" /></div><div><label>From date</label><input id="purchaseFrom" type="date" /></div><div><label>To date</label><input id="purchaseTo" type="date" /></div></div>
           <div class="table-wrap" id="shipmentsTable"></div>
         </div>
       </section>
@@ -653,93 +638,36 @@
           <h2 id="saleFormTitle">Record a Sale</h2>
           <form id="saleForm">
             <input type="hidden" id="saleId" />
-            <div class="grid">
+            <div class="grid sales-header">
               <div><label>Date *</label><input type="date" id="saDate" required /></div>
-              <div><label>Buyer / selling party *</label><input id="saBuyer" required /></div>
-              <div style="grid-column: 1/-1">
-                <label>Products in this sale</label>
-                <div class="table-wrap" id="saleLines">
-                  <table class="sale-table" id="saleTable">
-                    <thead>
-                      <tr>
-                        <th>Product</th>
-                        <th>Shipment / Invoice</th>
-                        <th>Qty</th>
-                        <th>Rate</th>
-                        <th>Tax %</th>
-                        <th>Tax amount</th>
-                        <th>Basic amt (Qty × Rate)</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody id="saleLinesBody"></tbody>
-                    <tfoot>
-                      <tr>
-                        <td colspan="6" class="num">Basic total</td>
-                        <td class="num" id="saBasicTotal">0.00</td>
-                        <td></td>
-                      </tr>
-                      <tr>
-                        <td colspan="6" class="num">Tax total</td>
-                        <td class="num" id="saTaxTotal">0.00</td>
-                        <td></td>
-                      </tr>
-                      <tr class="grand">
-                        <td colspan="6" class="num">Grand total</td>
-                        <td class="num" id="saGrandTotal">0.00</td>
-                        <td></td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-                <div class="actions"><button type="button" id="addSaleLine">+ Add Product</button></div>
-                <p class="muted">
-                  Add one row for each product. Select the purchase shipment/invoice, then enter quantity,
-                  selling rate and tax %. Tax amount and basic amount are worked out on the same line. Freight
-                  and other sale costs are shared across the lines based on sales value.
-                </p>
-              </div>
-              <div>
-                <label>Currency</label
-                ><select id="saCurrency">
-                  <option selected>THB</option>
-                  <option>INR</option>
-                  <option>USD</option>
-                </select>
-              </div>
-              <div style="display: none"><input type="number" min="0.000001" step="any" id="saFx" /></div>
-              <div><label>Buyer / delivery location</label><input id="saLocation" /></div>
-              <div>
-                <label>Transport / delivery cost</label
-                ><input type="number" min="0" step="any" id="saTransport" value="0" />
-              </div>
-              <div>
-                <label>Other sale costs</label
-                ><input type="number" min="0" step="any" id="saOther" value="0" />
-              </div>
-              <div>
-                <label>Payment received so far</label
-                ><input type="number" min="0" step="any" id="saReceived" value="0" />
-              </div>
-              <div><label>Notes</label><input id="saNotes" /></div>
+              <div><label>Sales Invoice Number</label><input id="saInvoiceNo" readonly /></div>
+              <div><label>Selling Party *</label><input id="saBuyer" list="salePartyOptions" required /><datalist id="salePartyOptions"></datalist></div>
+              <div><label>Currency</label><select id="saCurrency"><option>THB</option><option>INR</option><option>USD</option><option>EUR</option></select></div>
+              <div style="display:none"><input type="number" id="saFx" /></div>
             </div>
+            <h3>Product line items</h3>
+            <p class="muted">Tax is added to the selling rate (tax exclusive). Additional sale costs are allocated by basic sales value for profit reporting and are not added to the customer invoice total.</p>
+            <div class="table-wrap" id="saleLines"><table class="sale-table" id="saleTable"><thead><tr><th>Product</th><th>Shipment / Invoice</th><th>Unit</th><th>Quantity</th><th>Rate</th><th>Tax %</th><th>Basic Amount</th><th>Tax Total</th><th>Line Total</th><th></th></tr></thead><tbody id="saleLinesBody"></tbody></table></div>
+            <div class="actions"><button type="button" id="addSaleLine">+ Add Product Row</button></div>
+            <div class="grid sales-extras">
+              <div><label>Delivery Location</label><input id="saLocation" /></div>
+              <div><label>Delivery Cost</label><input type="number" min="0" step="any" id="saTransport" value="0" /></div>
+              <div><label>Miscellaneous Cost</label><input type="number" min="0" step="any" id="saOther" value="0" /></div>
+              <div><label>Payment Received</label><input type="number" min="0" step="any" id="saReceived" value="0" /></div>
+              <div><label>Payment Due Date</label><input type="date" id="saDueDate" /></div>
+              <div style="grid-column:1/-1"><label>Notes</label><textarea id="saNotes" placeholder="Optional notes"></textarea></div>
+            </div>
+            <div id="saleSummary" class="metrics"></div>
             <div id="customFields-sale" class="grid"></div>
-            <div class="actions">
-              <button class="primary" type="submit">Save Sale</button
-              ><button type="button" id="saleCancel">Clear</button>
-            </div>
-            <div
-              id="saleMessage"
-              class="notice"
-              role="status"
-              aria-live="polite"
-              style="display: none; margin-top: 12px"
-            ></div>
+            <div class="actions"><button class="primary" type="submit">Save Sale</button><button type="button" id="saleCancel">Reset / Clear Form</button></div>
+            <div id="saleMessage" class="notice" role="status" aria-live="polite" style="display:none;margin-top:12px"></div>
           </form>
         </div>
         <div class="card">
-          <h2>All Sales Records</h2>
+          <h2>Sales Transactions</h2>
+          <div class="grid sales-filters"><div><label>Search invoice / selling party</label><input id="salesSearch" placeholder="Search sales" /></div><div><label>Product</label><select id="salesProductFilter"><option value="">All products</option></select></div><div><label>Shipment / invoice</label><select id="salesShipmentFilter"><option value="">All shipments</option></select></div><div><label>From date</label><input id="salesFrom" type="date" /></div><div><label>To date</label><input id="salesTo" type="date" /></div><div><label>Payment status</label><select id="salesStatusFilter"><option value="">All statuses</option><option>Unpaid</option><option>Partially Paid</option><option>Paid</option><option>Overdue</option><option>Overpaid / Customer Credit</option></select></div></div>
           <div class="table-wrap" id="salesTable"></div>
+          <div class="card" id="saleInvoiceView" style="display:none"><div class="section-heading"><h3 id="saleInvoiceTitle">Invoice details</h3><button type="button" class="small" id="closeSaleInvoice">Close</button></div><div class="table-wrap" id="saleInvoiceDetails"></div></div>
         </div>
       </section>
 
@@ -1547,6 +1475,8 @@
           (a, s) => a + num(s.received) * num(s.fx),
           0,
         );
+        const saleGroups=[...new Set(data.sales.map(s=>String(saleGroup(s))))];
+        const receivable=saleGroups.reduce((a,g)=>{const rows=saleGroupRows(g),first=rows[0],paid=rows.reduce((n,s)=>n+num(s.received),0);return a+Math.max(0,saleInvoiceTotal(rows)-paid)*(num(first?.fx)||1);},0);
         let purchase = data.shipments.reduce(
           (a, s) => a + num(s.qty) * num(s.rate) * num(s.fx),
           0,
@@ -1559,6 +1489,7 @@
           saleCost,
           expenses,
           received,
+          receivable,
           purchase,
           land,
           profit: revenue - cogs - saleCost - expenses,
@@ -1669,28 +1600,10 @@
         if ([...el.options].some((o) => o.value === old)) el.value = old;
       }
       function renderShipments() {
-        document.getElementById("shipmentsTable").innerHTML = table(
-          [
-            "Date",
-            "Reference",
-            "Product",
-            "Purchased Qty",
-            "Unit",
-            "Rate – Invoice",
-            "Rate – Cash",
-            "Total Rate",
-            "Currency",
-            "Invoice Value (THB)",
-            "Cash Value (THB)",
-            "Purchase Total (THB)",
-            "Notes",
-            "Actions",
-          ],
-          data.shipments.map(
-            (s) =>
-              `<tr><td>${esc(s.date)}</td><td>${esc(s.ref)}</td><td>${esc(s.product)}</td><td>${qty(s.qty)}</td><td>${esc(s.unit || (data.products.find((p) => p.name === s.product) || {}).unit || "kg")}</td><td>${money(rateInv(s), s.currency)}</td><td>${money(rateCash(s), s.currency)}</td><td>${money(s.rate, s.currency)}</td><td>${esc(s.currency)}</td><td>${money(num(s.qty) * rateInv(s) * num(s.fx))}</td><td>${money(num(s.qty) * rateCash(s) * num(s.fx))}</td><td>${money(num(s.qty) * num(s.rate) * num(s.fx))}</td><td>${esc(s.notes || "")}</td><td class="actions">${actions("shipment", s)}</td></tr>`,
-          ),
-        );
+        const query=(document.getElementById("purchaseSearch")?.value||"").trim().toLocaleLowerCase();
+        const from=document.getElementById("purchaseFrom")?.value||"", to=document.getElementById("purchaseTo")?.value||"";
+        const visible=data.shipments.filter(s=>{const text=[s.ref,s.product,s.supplier].join(" ").toLocaleLowerCase();return (!query||text.includes(query))&&(!from||s.date>=from)&&(!to||s.date<=to);});
+        document.getElementById("shipmentsTable").innerHTML=table(["Purchase Invoice No.","Date","Product","Quantity","Unit","Invoice Rate","Cash Rate","Import Duty","VAT","Transport","Warehouse","Miscellaneous","Landed Cost","Notes","Actions"],visible.map(s=>`<tr><td>${esc(s.ref||"?")}</td><td>${esc(s.date)}</td><td>${esc(s.product)}</td><td>${qty(s.qty)}</td><td>${esc(s.unit||(data.products.find(p=>p.name===s.product)||{}).unit||"kg")}</td><td>${money(rateInv(s),s.currency)}</td><td>${money(rateCash(s),s.currency)}</td><td>${money(s.importDuty,s.currency)}</td><td>${money(s.vat,s.currency)}</td><td>${money(s.transportCharges,s.currency)}</td><td>${money(s.clearanceCharges,s.currency)}</td><td>${money(s.miscCharges,s.currency)}</td><td><strong>${money(num(s.qty)*num(s.rate),s.currency)}</strong></td><td>${esc(s.notes||"")}</td><td class="actions">${actions("shipment",s)}</td></tr>`));
       }
       function saleProfit(s) {
         const sh = data.shipments.find((x) => String(x.id) === String(s.shipmentId));
@@ -1726,43 +1639,53 @@
           transactions: linkedSales.length,
         };
       }
-      function renderSales() {
-        const rows = data.sales.map((s) => {
-          const sh = data.shipments.find(
-            (x) => String(x.id) === String(s.shipmentId),
-          );
-          const profit = saleProfit(s);
-          return `<tr><td>${esc(s.date)}</td><td>${esc(s.buyer)}</td><td>${esc(s.product)}</td><td>${esc(sh ? sh.ref || "Purchase " + String(sh.id).slice(-6) : "Not linked (older sale)")}</td><td>${qty(s.qty)}</td><td>${money(s.rate, s.currency)}</td><td>${esc(s.currency)}</td><td>${num(s.taxPct)}%</td><td>${money(rev(s))}</td><td>${money(saleTax(s))}</td><td>${money(rev(s) + saleTax(s))}</td><td>${profit === null ? "N/A (no linked shipment)" : money(profit)}</td><td>${money(num(s.received) * num(s.fx))}</td><td>${esc(s.location)}</td><td class="actions">${actions("sale", s)}</td></tr>`;
-        });
-        if (rows.length) {
-          const b = data.sales.reduce((a, s) => a + rev(s), 0),
-            t = data.sales.reduce((a, s) => a + saleTax(s), 0);
-          rows.push(
-            `<tr class="total-row"><td colspan="8">Total (Basic / Tax / Grand)</td><td>${money(b)}</td><td>${money(t)}</td><td>${money(b + t)}</td><td colspan="4"></td></tr>`,
-          );
-        }
-        document.getElementById("salesTable").innerHTML = table(
-          [
-            "Date",
-            "Buyer",
-            "Product",
-            "Source Shipment / Invoice",
-            "Qty",
-            "Sell Rate",
-            "Currency",
-            "Tax %",
-            "Basic Amount (THB)",
-            "Tax Amount (THB)",
-            "Total incl. Tax (THB)",
-            "Transaction Profit (THB)",
-            "Received (THB)",
-            "Location",
-            "Actions",
-          ],
-          rows,
-        );
+      function saleGroup(s) { return s.saleGroupId || s.id; }
+      function saleGroupRows(groupId) { return data.sales.filter(s=>String(saleGroup(s))===String(groupId)); }
+      function saleInvoiceTotal(rows) { return round2(rows.reduce((a,s)=>a+num(s.qty)*num(s.rate)+num(s.taxAmt!==undefined?s.taxAmt:num(s.qty)*num(s.rate)*num(s.taxPct)/100),0)); }
+      function salePaymentStatus(rows) {
+        const total=saleInvoiceTotal(rows), paid=rows.reduce((a,s)=>a+num(s.received),0), due=rows.find(s=>s.paymentDueDate)?.paymentDueDate||"";
+        if(paid>total+0.01)return "Overpaid / Customer Credit";
+        if(total>0&&paid>=total-0.01)return "Paid";
+        if(due&&due<today())return "Overdue";
+        return paid>0?"Partially Paid":"Unpaid";
       }
-
+      function nextSaleInvoiceNo() {
+        let max=0;data.sales.forEach(s=>{const m=String(s.invoiceNo||"").match(/^SALE-(\d+)$/i);if(m)max=Math.max(max,Number(m[1]));});
+        return "SALE-"+String(max+1).padStart(4,"0");
+      }
+      function saleActions(s) {
+        const gid=saleGroup(s);
+        return `<button class="small" onclick="viewSaleInvoice('${gid}')">View Invoice</button> <button class="small" onclick="editRecord('sale','${s.id}')">Edit</button> <button class="small" onclick="recordSalePayment('${gid}')">Record Payment</button> <button class="small danger" onclick="deleteRecord('sale','${s.id}')">Cancel Sale</button>`;
+      }
+      function renderSales() {
+        const query=(document.getElementById("salesSearch")?.value||"").trim().toLocaleLowerCase(), productFilter=document.getElementById("salesProductFilter")?.value||"", shipmentFilter=document.getElementById("salesShipmentFilter")?.value||"", from=document.getElementById("salesFrom")?.value||"", to=document.getElementById("salesTo")?.value||"", statusFilter=document.getElementById("salesStatusFilter")?.value||"";
+        const productEl=document.getElementById("salesProductFilter"), oldProduct=productEl.value, shipEl=document.getElementById("salesShipmentFilter"), oldShip=shipEl.value;
+        productEl.innerHTML='<option value="">All products</option>'+data.products.map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join("");if([...productEl.options].some(o=>o.value===oldProduct))productEl.value=oldProduct;
+        shipEl.innerHTML='<option value="">All shipments</option>'+data.shipments.map(sh=>`<option value="${esc(sh.id)}">${esc(sh.ref||"Purchase "+String(sh.id).slice(-6))} ? ${esc(sh.product)}</option>`).join("");if([...shipEl.options].some(o=>o.value===oldShip))shipEl.value=oldShip;
+        const parties=[...new Set(data.sales.map(s=>s.buyer).filter(Boolean))];document.getElementById("salePartyOptions").innerHTML=parties.map(x=>`<option value="${esc(x)}">`).join("");
+        const rows=data.sales.filter(s=>{const group=saleGroupRows(saleGroup(s)),text=[s.invoiceNo,s.buyer].join(" ").toLocaleLowerCase();return (!query||text.includes(query))&&(!productFilter||s.product===productFilter)&&(!shipmentFilter||String(s.shipmentId)===shipmentFilter)&&(!from||s.date>=from)&&(!to||s.date<=to)&&(!statusFilter||salePaymentStatus(group)===statusFilter);}).map(s=>{
+          const sh=data.shipments.find(x=>String(x.id)===String(s.shipmentId)), group=saleGroupRows(saleGroup(s)), basic=round2(num(s.qty)*num(s.rate)), tax=round2(s.taxAmt!==undefined?num(s.taxAmt):basic*num(s.taxPct)/100), lineGrand=round2(basic+tax), paid=num(s.received), due=Math.max(0,lineGrand-paid), status=salePaymentStatus(group);
+          return `<tr><td>${esc(s.date)}</td><td>${esc(s.invoiceNo||"Legacy sale")}</td><td>${esc(s.buyer)}</td><td>${esc(s.product)}</td><td>${esc(sh?sh.ref||"Purchase "+String(sh.id).slice(-6):"Not linked")}</td><td>${esc(s.unit||(sh&&sh.unit)||(data.products.find(p=>p.name===s.product)||{}).unit||"kg")}</td><td>${qty(s.qty)}</td><td>${money(s.rate,s.currency)}</td><td>${num(s.taxPct)}%</td><td>${money(basic,s.currency)}</td><td>${money(tax,s.currency)}</td><td>${money(lineGrand,s.currency)}</td><td>${money(num(s.transport),s.currency)}</td><td>${money(num(s.other),s.currency)}</td><td>${money(paid,s.currency)}</td><td>${money(due,s.currency)}${paid>lineGrand+0.01?` ? Credit ${money(paid-lineGrand,s.currency)}`:""}</td><td>${esc(s.paymentDueDate||"?")}</td><td>${status}</td><td class="actions">${saleActions(s)}</td></tr>`;
+        });
+        document.getElementById("salesTable").innerHTML=table(["Date","Sales Invoice No.","Selling Party","Product","Shipment / Invoice","Unit","Quantity","Rate","Tax %","Basic Amount","Tax Total","Line Total","Allocated Delivery Cost","Allocated Misc. Cost","Payment Received","Outstanding","Due Date","Payment Status","Actions"],rows);
+      }
+      function viewSaleInvoice(groupId) {
+        const rows=saleGroupRows(groupId);if(!rows.length)return;
+        const first=rows[0],grand=saleInvoiceTotal(rows),paid=rows.reduce((a,s)=>a+num(s.received),0),status=salePaymentStatus(rows);
+        document.getElementById("saleInvoiceTitle").textContent=`Invoice ${first.invoiceNo||"(legacy)"} ? ${first.buyer} ? ${first.date}`;
+        const details=rows.map(s=>{const sh=data.shipments.find(x=>String(x.id)===String(s.shipmentId)),basic=num(s.qty)*num(s.rate),tax=s.taxAmt!==undefined?num(s.taxAmt):basic*num(s.taxPct)/100;return `<tr><td>${esc(s.product)}</td><td>${esc(sh?.ref||"Not linked")}</td><td>${esc(s.unit||(sh&&sh.unit)||(data.products.find(p=>p.name===s.product)||{}).unit||"kg")}</td><td>${qty(s.qty)}</td><td>${money(s.rate,s.currency)}</td><td>${money(basic,s.currency)}</td><td>${num(s.taxPct)}%</td><td>${money(tax,s.currency)}</td><td>${money(basic+tax,s.currency)}</td></tr>`;});details.push(`<tr class="total-row"><td colspan="4">Invoice total | Paid ${money(paid,first.currency)} | Outstanding ${money(Math.max(0,grand-paid),first.currency)} | ${status} | Due ${esc(first.paymentDueDate||"not set")}</td><td colspan="5">Delivery ${money(rows.reduce((a,s)=>a+num(s.transport),0),first.currency)} | Misc. ${money(rows.reduce((a,s)=>a+num(s.other),0),first.currency)}</td></tr>`);
+        document.getElementById("saleInvoiceDetails").innerHTML=table(["Product","Shipment / Invoice","Unit","Quantity","Rate","Basic","Tax %","Tax","Line Total"],details);
+        const card=document.getElementById("saleInvoiceView");card.style.display="block";card.scrollIntoView({behavior:"smooth",block:"nearest"});
+      }
+      function recordSalePayment(groupId) {
+        const rows=saleGroupRows(groupId);if(!rows.length)return;
+        const first=rows[0],total=saleInvoiceTotal(rows),paid=rows.reduce((a,s)=>a+num(s.received),0),balance=round2(total-paid);if(balance<=0){alert("This invoice is already paid.");return;}
+        const amount=Number(prompt(`Outstanding balance: ${money(balance,first.currency)}. Enter additional payment received:`,String(balance)));if(!Number.isFinite(amount)||round2(amount)<=0)return;const payment=round2(amount);if(payment>balance+0.001){alert("Payment cannot exceed the outstanding balance. Customer credit is not enabled.");return;}
+        const totalDue=total||1;rows.forEach(s=>{const lineTotal=num(s.qty)*num(s.rate)+(s.taxAmt!==undefined?num(s.taxAmt):num(s.qty)*num(s.rate)*num(s.taxPct)/100);s.received=round2(num(s.received)+payment*lineTotal/totalDue);});
+        const rounding=round2(paid+payment-rows.reduce((a,s)=>a+num(s.received),0));if(rounding)rows[0].received=round2(num(rows[0].received)+rounding);
+        save();renderSales();
+      }
+      document.getElementById("closeSaleInvoice").addEventListener("click",()=>document.getElementById("saleInvoiceView").style.display="none");
       function renderExpenses() {
         document.getElementById("expensesTable").innerHTML = table(
           [
@@ -1799,7 +1722,7 @@
           stockIn: qty(t.stockIn),
           sold: qty(t.sold),
           remaining: qty(t.stockIn - t.sold),
-          outstanding: money(t.revenue + t.tax - t.received),
+          outstanding: money(t.receivable),
         };
         document.getElementById("metrics").innerHTML = (
           data.settings.dashboardCards || []
@@ -2042,95 +1965,34 @@
       }
 
       function addSaleLine(item = {}) {
-        const host = document.getElementById("saleLinesBody");
-        if (!host) return;
-        const row = document.createElement("tr");
-        row.className = "sale-line";
-        row.innerHTML = `<td><select class="sl-product" required><option value="">Choose product…</option>${data.products
-          .filter((p) => p.active)
-          .map((p) => `<option value="${esc(p.name)}">${esc(p.name)}</option>`)
-          .join("")}</select></td>
-       <td><select class="sl-shipment" required><option value="">Choose shipment / invoice…</option></select></td>
-       <td><input class="sl-qty" type="number" min="0.000001" step="any" required value="${item.qty ?? ""}"></td>
-       <td><input class="sl-rate" type="number" min="0" step="any" required value="${item.rate ?? ""}"></td>
-       <td><input class="sl-tax" type="number" min="0" max="100" step="any" placeholder="0" value="${item.taxPct ?? ""}"></td>
-       <td class="num sl-taxamt">0.00</td>
-       <td class="num sl-basic">0.00</td>
-       <td><button type="button" class="small danger sl-remove">Remove</button></td>`;
-        host.appendChild(row);
-        const product = row.querySelector(".sl-product"),
-          shipment = row.querySelector(".sl-shipment");
-        product.value = item.product || "";
-        function fillShipments() {
-          const previous = item.shipmentId || shipment.value;
-          shipment.innerHTML =
-            '<option value="">Choose shipment / invoice…</option>' +
-            data.shipments
-              .filter((sh) => !product.value || sh.product === product.value)
-              .map(
-                (sh) =>
-                  `<option value="${esc(sh.id)}">${esc(sh.ref || "Purchase " + String(sh.id).slice(-6))} — ${esc(sh.product)} — Remaining: ${qty(num(sh.qty) - data.sales.filter((s) => String(s.shipmentId || "") === String(sh.id) && String(s.id) !== String(val("saleId"))).reduce((a, s) => a + num(s.qty), 0))}</option>`,
-              )
-              .join("");
-          if ([...shipment.options].some((o) => o.value === previous))
-            shipment.value = previous;
+        const host=document.getElementById("saleLinesBody");if(!host)return;
+        const row=document.createElement("tr");row.className="sale-line";
+        const units=[...new Set(["kg","pcs","MT","tonne","bag","box","piece","litre","drum","other",...data.products.map(p=>p.unit),...data.shipments.map(sh=>sh.unit)].filter(Boolean))];
+        row.innerHTML=`<td><select class="sl-product" required><option value="">Choose product</option>${data.products.filter(p=>p.active).map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join("")}</select></td><td><select class="sl-shipment" required><option value="">Choose shipment / invoice</option></select></td><td><select class="sl-unit" required>${units.map(u=>`<option value="${esc(u)}">${esc(u)}</option>`).join("")}</select></td><td><input class="sl-qty" type="number" min="0.000001" step="any" required value="${item.qty??""}"></td><td><input class="sl-rate" type="number" min="0" step="any" required value="${item.rate??""}"></td><td><input class="sl-tax" type="number" min="0" max="100" step="any" placeholder="0" value="${item.taxPct??""}"></td><td class="num sl-basic">0.00</td><td class="num sl-taxamt">0.00</td><td class="num sl-line-total">0.00</td><td><button type="button" class="small danger sl-remove">Remove</button></td>`;
+        host.appendChild(row);const product=row.querySelector(".sl-product"),shipment=row.querySelector(".sl-shipment"),unit=row.querySelector(".sl-unit");product.value=item.product||"";
+        function syncUnit(){const sh=data.shipments.find(x=>String(x.id)===String(shipment.value)),p=data.products.find(x=>x.name===product.value),expected=(sh&&sh.unit)||(p&&p.unit);if(expected&&units.includes(expected))unit.value=expected;else if(item.unit&&units.includes(item.unit))unit.value=item.unit;}
+        function fillShipments(){const previous=item.shipmentId||shipment.value, edit=data.sales.find(s=>String(s.id)===String(val("saleId"))), editGroup=edit?saleGroup(edit):null, excluded=data.sales.filter(s=>editGroup&&String(saleGroup(s))===String(editGroup)).map(s=>String(s.id));
+          shipment.innerHTML='<option value="">Choose shipment / invoice</option>'+data.shipments.filter(sh=>!product.value||sh.product===product.value).map(sh=>{const sold=data.sales.filter(s=>String(s.shipmentId)===String(sh.id)&&!excluded.includes(String(s.id))).reduce((a,s)=>a+num(s.qty),0);return `<option value="${esc(sh.id)}">${esc(sh.ref||"Purchase "+String(sh.id).slice(-6))} ? ${esc(sh.product)} (${esc(sh.unit||(data.products.find(p=>p.name===sh.product)||{}).unit||"unit")}) ? Available: ${qty(num(sh.qty)-sold)}</option>`;}).join("");if([...shipment.options].some(o=>o.value===previous))shipment.value=previous;syncUnit();
         }
-        fillShipments();
-        product.addEventListener("change", () => {
-          item.shipmentId = "";
-          fillShipments();
-        });
-        shipment.addEventListener("change", () => {
-          const sh = data.shipments.find(
-            (s) => String(s.id) === String(shipment.value),
-          );
-          if (sh) product.value = sh.product;
-        });
-        ["sl-qty", "sl-rate", "sl-tax"].forEach((c) =>
-          row.querySelector("." + c).addEventListener("input", updateSaleTotals),
-        );
-        row.querySelector(".sl-remove").addEventListener("click", () => {
-          if (host.querySelectorAll(".sale-line").length > 1) {
-            row.remove();
-            updateSaleTotals();
-          } else alert("Keep at least one product row in the sale.");
-        });
-        updateSaleTotals();
+        fillShipments();if(item.unit&&units.includes(item.unit))unit.value=item.unit;product.addEventListener("change",()=>{item.shipmentId="";fillShipments();syncUnit();});shipment.addEventListener("change",()=>{const sh=data.shipments.find(x=>String(x.id)===String(shipment.value));if(sh){product.value=sh.product;syncUnit();}});
+        ["sl-qty","sl-rate","sl-tax"].forEach(c=>row.querySelector("."+c).addEventListener("input",updateSaleTotals));
+        row.querySelector(".sl-remove").addEventListener("click",()=>{if(host.querySelectorAll(".sale-line").length>1){row.remove();updateSaleTotals();}else alert("Keep at least one product row in the sale.");});updateSaleTotals();
       }
-      function fmt2(x) {
-        return num(x).toLocaleString("en-IN", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        });
-      }
-      function updateSaleTotals() {
-        const cur = val("saCurrency") || "THB";
-        let basic = 0,
-          tax = 0;
-        document.querySelectorAll("#saleLinesBody .sale-line").forEach((r) => {
-          const b = round2(
-            num(r.querySelector(".sl-qty").value) *
-              num(r.querySelector(".sl-rate").value),
-          );
-          const t = round2((b * num(r.querySelector(".sl-tax").value)) / 100);
-          r.querySelector(".sl-basic").textContent = fmt2(b);
-          r.querySelector(".sl-taxamt").textContent = fmt2(t);
-          basic += b;
-          tax += t;
-        });
-        const set = (i, v) => {
-          const el = document.getElementById(i);
-          if (el) el.textContent = money(v, cur);
-        };
-        set("saBasicTotal", basic);
-        set("saTaxTotal", tax);
-        set("saGrandTotal", basic + tax);
+      function fmt2(x){return num(x).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});}
+      function updateSaleTotals(){
+        const cur=val("saCurrency")||"THB", lines=[...document.querySelectorAll("#saleLinesBody .sale-line")];let basic=0,tax=0,totalQty=0;
+        lines.forEach(r=>{const q=num(r.querySelector(".sl-qty").value),b=round2(q*num(r.querySelector(".sl-rate").value)),t=round2(b*num(r.querySelector(".sl-tax").value)/100);r.querySelector(".sl-basic").textContent=fmt2(b);r.querySelector(".sl-taxamt").textContent=fmt2(t);r.querySelector(".sl-line-total").textContent=fmt2(b+t);basic+=b;tax+=t;totalQty+=q;});
+        const grand=round2(basic+tax),paid=num(document.getElementById("saReceived")?.value),delivery=num(document.getElementById("saTransport")?.value),misc=num(document.getElementById("saOther")?.value),due=Math.max(0,grand-paid),set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=money(v,cur);};
+        set("saBasicTotal",basic);set("saTaxTotal",tax);set("saGrandTotal",grand);
+        const dueDate=val("saDueDate"),status=paid>=grand-0.01&&grand>0?"Paid":dueDate&&dueDate<today()?"Overdue":paid>0?"Partially Paid":"Unpaid";
+        document.getElementById("saleSummary").innerHTML=`<div class="metric"><div class="label">Total Quantity</div><div class="value">${qty(totalQty)}</div></div><div class="metric"><div class="label">Total Basic Amount</div><div class="value">${money(basic,cur)}</div></div><div class="metric"><div class="label">Total Tax</div><div class="value">${money(tax,cur)}</div></div><div class="metric"><div class="label">Grand Total</div><div class="value">${money(grand,cur)}</div></div><div class="metric"><div class="label">Additional Costs</div><div class="value">${money(delivery+misc,cur)}</div></div><div class="metric"><div class="label">Outstanding Receivable ? ${status}</div><div class="value">${money(due,cur)}</div></div>`;
       }
       function getSaleLines() {
         return [...document.querySelectorAll("#saleLinesBody .sale-line")].map(
           (row) => ({
             product: row.querySelector(".sl-product").value,
             shipmentId: row.querySelector(".sl-shipment").value,
+            unit: row.querySelector(".sl-unit").value,
             qty: num(row.querySelector(".sl-qty").value),
             rate: num(row.querySelector(".sl-rate").value),
             taxPct: num(row.querySelector(".sl-tax").value),
@@ -2171,6 +2033,9 @@
           setv("shCurrency", "THB");
           setv("shFx", fx("THB"));
           setv("shUnit", "kg");
+          setv("shDutyPct", 0); setv("shTransport", 0); setv("shClearance", 0); setv("shMisc", 0);
+          const purchaseHost=document.getElementById("purchaseLinesBody");
+          if(purchaseHost){purchaseHost.innerHTML="";addPurchaseLine();}
         }
         if (type === "sale") {
           setv("saDate", today());
@@ -2178,6 +2043,9 @@
           ["saTransport", "saOther", "saReceived"].forEach((k) => setv(k, 0));
           setv("saCurrency", "THB");
           setv("saFx", fx("THB"));
+          setv("saInvoiceNo", nextSaleInvoiceNo()); setv("saDueDate", "");
+          document.getElementById("saReceived").readOnly=false; document.getElementById("saReceived").value=0;
+          const invoiceView=document.getElementById("saleInvoiceView");if(invoiceView)invoiceView.style.display="none";updateSaleTotals();
         }
         if (type === "expense") {
           setv("exDate", today());
@@ -2232,6 +2100,8 @@
                 ? {
                     saleId: "id",
                     saDate: "date",
+                    saInvoiceNo: "invoiceNo",
+                    saDueDate: "paymentDueDate",
                     saBuyer: "buyer",
                     saCurrency: "currency",
                     saFx: "fx",
@@ -2255,16 +2125,18 @@
           if (k === "active") v = String(v !== false);
           setv(el, v);
         });
-        if (type === "sale")
-          resetSaleLines([
-            {
-              product: r.product,
-              shipmentId: r.shipmentId,
-              qty: r.qty,
-              rate: r.rate,
-              taxPct: r.taxPct,
-            },
-          ]);
+        if (type === "shipment") {
+          const groupId = r.purchaseGroupId || r.id;
+          const groupRows = data.shipments.filter(x => (x.purchaseGroupId || x.id) === groupId);
+          const host = document.getElementById("purchaseLinesBody"); host.innerHTML = "";
+          groupRows.forEach(x => addPurchaseLine({product:x.product,qty:x.qty,unit:x.unit,rateInv:rateInv(x),rateCash:rateCash(x),importDuty:x.importDuty,vatPct:x.vatPct,transport:x.transportCharges,warehouse:x.warehouseCharges??x.clearanceCharges,misc:x.miscCharges}));
+          updatePurchaseCostBreakdown();
+        }
+        if (type === "sale") {
+          const groupRows=saleGroupRows(saleGroup(r));
+          resetSaleLines(groupRows.map(x=>({product:x.product,shipmentId:x.shipmentId,unit:x.unit,qty:x.qty,rate:x.rate,taxPct:x.taxPct})));
+          setv("saInvoiceNo",r.invoiceNo||nextSaleInvoiceNo());setv("saTransport",groupRows.reduce((a,x)=>a+num(x.transport),0));setv("saOther",groupRows.reduce((a,x)=>a+num(x.other),0));setv("saReceived",groupRows.reduce((a,x)=>a+num(x.received),0));setv("saDueDate",r.paymentDueDate||"");document.getElementById("saReceived").readOnly=true;updateSaleTotals();
+        }
         setCustomValues(type, r);
         document.getElementById(type + "FormTitle").textContent =
           "Edit " +
@@ -2284,9 +2156,7 @@
       }
       function deleteRecord(type, recordId) {
         if (
-          !confirm(
-            "Delete this record? This cannot be undone unless you have a backup.",
-          )
+          !confirm(type==="sale"?"Cancel this complete sales invoice? Its quantities will be restored to available stock.":"Delete this record? This cannot be undone unless you have a backup.")
         )
           return;
         if (type === "product") {
@@ -2301,10 +2171,16 @@
             return;
           }
           data.products = data.products.filter((x) => x.id !== recordId);
-        } else if (type === "shipment")
-          data.shipments = data.shipments.filter((x) => x.id !== recordId);
-        else if (type === "sale")
-          data.sales = data.sales.filter((x) => x.id !== recordId);
+        } else if (type === "shipment") {
+          const row=data.shipments.find(x=>String(x.id)===String(recordId));
+          const group=row&&(row.purchaseGroupId||row.id);
+          if(row&&data.shipments.filter(x=>(x.purchaseGroupId||x.id)===group).some(x=>data.sales.some(s=>String(s.shipmentId)===String(x.id)))){alert("This purchase invoice has linked sales and cannot be deleted.");return;}
+          data.shipments=data.shipments.filter(x=>(x.purchaseGroupId||x.id)!==group);
+        }
+        else if (type === "sale") {
+          const row=data.sales.find(x=>String(x.id)===String(recordId)),group=row&&saleGroup(row);
+          data.sales=data.sales.filter(x=>!row||String(saleGroup(x))!==String(group));
+        }
         else data.expenses = data.expenses.filter((x) => x.id !== recordId);
         save();
       }
@@ -2514,120 +2390,30 @@
             message =
               "Purchase saved successfully. It is now listed in Purchase / Shipment Records below.";
           } else if (type === "sale") {
-            rid = val("saleId");
-            const lines = getSaleLines();
-            const currency = val("saCurrency") || "THB";
-            const common = {
-              date: val("saDate"),
-              buyer: val("saBuyer").trim(),
-              currency,
-              fx: num(val("saFx")) || fx(currency) || 1,
-              location: val("saLocation").trim(),
-              transport: num(val("saTransport")),
-              other: num(val("saOther")),
-              received: num(val("saReceived")),
-              notes: val("saNotes").trim(),
-              custom: readCustomFields("sale"),
-            };
-            list = data.sales;
-            if (!common.date || !common.buyer) {
-              showSaveMessage(type, "Enter the sale date and buyer.", false);
-              return;
+            rid=val("saleId");const lines=getSaleLines(),currency=val("saCurrency")||"THB",common={date:val("saDate"),buyer:val("saBuyer").trim(),invoiceNo:val("saInvoiceNo").trim(),paymentDueDate:val("saDueDate"),currency,fx:num(val("saFx"))||fx(currency)||1,location:val("saLocation").trim(),transport:num(val("saTransport")),other:num(val("saOther")),received:num(val("saReceived")),notes:val("saNotes").trim(),custom:readCustomFields("sale")};
+            list=data.sales;const oldRecord=data.sales.find(x=>String(x.id)===String(rid)),groupId=oldRecord?saleGroup(oldRecord):id(),oldGroup=oldRecord?saleGroupRows(groupId):[];
+            if(!common.date||!common.buyer){showSaveMessage(type,"Enter the sale date and selling party.",false);return;}
+            if(!lines.length||lines.some(x=>!x.product||!x.shipmentId||!x.unit||x.qty<=0||x.rate<0||x.taxPct<0||x.taxPct>100||!Number.isFinite(x.qty)||!Number.isFinite(x.rate))){showSaveMessage(type,"For each product row, choose its shipment, enter a positive quantity, a valid rate and tax from 0 to 100%.",false);return;}
+            if(common.transport<0||common.other<0||common.received<0){showSaveMessage(type,"Delivery, miscellaneous costs and payment received cannot be negative.",false);return;}
+            if(!common.invoiceNo)common.invoiceNo=nextSaleInvoiceNo();
+            if(data.sales.some(x=>x.invoiceNo&&String(x.invoiceNo).toLowerCase()===common.invoiceNo.toLowerCase()&&String(saleGroup(x))!==String(groupId))){showSaveMessage(type,"That sales invoice number already exists. Refresh and try again.",false);return;}
+            const oldIds=new Set(oldGroup.map(x=>String(x.id)));
+            for(const line of lines){const sh=data.shipments.find(x=>String(x.id)===String(line.shipmentId));if(!sh||sh.product!==line.product||(line.unit!==(sh.unit||(data.products.find(p=>p.name===sh.product)||{}).unit||line.unit))){showSaveMessage(type,"Each sale line must match the product, shipment and stock unit.",false);return;}
+              const alreadySold=data.sales.filter(s=>String(s.shipmentId)===String(sh.id)&&!oldIds.has(String(s.id))).reduce((a,s)=>a+num(s.qty),0),requested=lines.filter(x=>String(x.shipmentId)===String(sh.id)).reduce((a,x)=>a+num(x.qty),0);
+              if(requested+alreadySold>num(sh.qty)+1e-9){showSaveMessage(type,"Not enough stock in shipment "+(sh.ref||sh.id)+". Available before this sale: "+qty(num(sh.qty)-alreadySold)+".",false);return;}
             }
-            if (
-              !lines.length ||
-              lines.some(
-                (x) =>
-                  !x.product ||
-                  !x.shipmentId ||
-                  x.qty <= 0 ||
-                  x.rate < 0 ||
-                  x.taxPct < 0 ||
-                  x.taxPct > 100 ||
-                  !Number.isFinite(x.qty) ||
-                  !Number.isFinite(x.rate),
-              )
-            ) {
-              showSaveMessage(
-                type,
-                "For every row, choose a product and shipment/invoice, then enter a quantity greater than zero, a valid selling rate and a tax % between 0 and 100.",
-                false,
-              );
-              return;
-            }
-            for (const line of lines) {
-              const sh = data.shipments.find(
-                (x) => String(x.id) === String(line.shipmentId),
-              );
-              if (!sh || sh.product !== line.product) {
-                showSaveMessage(
-                  type,
-                  "Each product must match its selected purchase shipment/invoice.",
-                  false,
-                );
-                return;
-              }
-              const alreadySold = data.sales
-                .filter(
-                  (s) =>
-                    String(s.shipmentId || "") === String(sh.id) &&
-                    String(s.id) !== String(rid),
-                )
-                .reduce((a, s) => a + num(s.qty), 0);
-              const requested = lines
-                .filter((x) => String(x.shipmentId) === String(sh.id))
-                .reduce((a, x) => a + num(x.qty), 0);
-              if (requested + alreadySold > num(sh.qty) + 1e-9) {
-                showSaveMessage(
-                  type,
-                  "Not enough stock in shipment " +
-                    (sh.ref || sh.id) +
-                    ". Available before this sale: " +
-                    qty(num(sh.qty) - alreadySold) +
-                    ".",
-                  false,
-                );
-                return;
-              }
-            }
-            const totalValue = lines.reduce(
-              (a, x) => a + x.qty * x.rate * common.fx,
-              0,
-            );
-            const groupId = rid
-              ? (data.sales.find((s) => String(s.id) === String(rid)) || {})
-                  .saleGroupId || rid
-              : id();
-            if (rid)
-              data.sales = data.sales.filter((s) => String(s.id) !== String(rid));
-            lines.forEach((line, index) => {
-              const weight = totalValue
-                ? (line.qty * line.rate * common.fx) / totalValue
-                : 1 / lines.length;
-              data.sales.push({
-                id: id(),
-                saleGroupId: groupId,
-                date: common.date,
-                buyer: common.buyer,
-                product: line.product,
-                shipmentId: line.shipmentId,
-                qty: line.qty,
-                rate: line.rate,
-                taxPct: line.taxPct,
-                taxAmt: round2((round2(line.qty * line.rate) * line.taxPct) / 100),
-                currency: common.currency,
-                fx: common.fx,
-                location: common.location,
-                transport: common.transport * weight,
-                other: common.other * weight,
-                received: common.received * weight,
-                notes: common.notes,
-                custom: common.custom,
-              });
+            const lineAmounts=lines.map(x=>({basic:round2(x.qty*x.rate),tax:round2(round2(x.qty*x.rate)*x.taxPct/100)})), grand=round2(lineAmounts.reduce((a,x)=>a+x.basic+x.tax,0));
+            if(oldRecord)common.received=oldGroup.reduce((a,x)=>a+num(x.received),0);
+            if(common.received>grand+0.001&&!oldRecord){showSaveMessage(type,"Payment received cannot exceed the invoice total; customer credit is not enabled for new sales.",false);return;}
+            const oldByKey=oldGroup.reduce((m,x)=>{const key=String(x.product)+"|"+String(x.shipmentId);(m[key]??=[]).push(x);return m;},{}),used=new Set();
+            lines.forEach(line=>{const key=String(line.product)+"|"+String(line.shipmentId),prev=(oldByKey[key]||[]).find(x=>!used.has(String(x.id)));if(prev){line.id=prev.id;used.add(String(prev.id));}});
+            const totalBasic=lineAmounts.reduce((a,x)=>a+x.basic,0),totalQty=lines.reduce((a,x)=>a+x.qty,0),weights=lines.map((x,i)=>totalBasic?lineAmounts[i].basic/totalBasic:(totalQty?x.qty/totalQty:1/lines.length));
+            if(oldRecord)data.sales=data.sales.filter(s=>String(saleGroup(s))!==String(groupId));
+            let paidAllocated=0;
+            lines.forEach((line,index)=>{const weight=weights[index],paymentWeight=grand?((lineAmounts[index].basic+lineAmounts[index].tax)/grand):(1/lines.length),received=index===lines.length-1?round2(common.received-paidAllocated):round2(common.received*paymentWeight);paidAllocated+=received;
+              data.sales.push({id:line.id||id(),saleGroupId:groupId,invoiceNo:common.invoiceNo,date:common.date,buyer:common.buyer,product:line.product,shipmentId:line.shipmentId,unit:line.unit,qty:line.qty,rate:line.rate,taxPct:line.taxPct,taxAmt:lineAmounts[index].tax,currency:common.currency,fx:common.fx,location:common.location,transport:round2(common.transport*weight),other:round2(common.other*weight),received,paymentDueDate:common.paymentDueDate,notes:common.notes,custom:common.custom});
             });
-            record = null;
-            message =
-              "Sale saved successfully. All product lines have been added to Sales Records.";
+            record=null;message="Sales invoice "+common.invoiceNo+" saved with all product lines.";
           } else {
             rid = val("expenseId");
             record = {
@@ -2693,6 +2479,55 @@
       document
         .getElementById("shipmentForm")
         .addEventListener("submit", (e) => handleTransactionSave(e, "shipment"));
+      // A purchase invoice is stored as linked shipment rows so existing stock, sales and reports stay compatible.
+      let purchaseSaving = false;
+      function purchaseRowValues(row) {
+        const get = sel => row.querySelector(sel).value;
+        return { product:get(".pl-product"), qty:num(get(".pl-qty")), unit:get(".pl-unit").trim(), rateInv:num(get(".pl-inv")), rateCash:num(get(".pl-cash")), importDuty:num(get(".pl-duty")), vatPct:num(get(".pl-vat")), transport:num(get(".pl-transport")), warehouse:num(get(".pl-warehouse")), misc:num(get(".pl-misc")) };
+      }
+      function addPurchaseLine(item = {}) {
+        const row=document.createElement("tr"); row.className="purchase-line";
+        const units=[...new Set(["kg","pcs","MT","tonne","bag","box","piece","litre","drum","other",...(data.products.map(p=>p.unit).filter(Boolean))])];
+        row.innerHTML=`<td><select class="pl-product" required><option value="">Choose product</option>${data.products.filter(p=>p.active).map(p=>"<option value=\""+esc(p.name)+"\">"+esc(p.name)+"</option>").join("")}</select></td><td><input class="pl-qty" type="number" min="0.000001" step="any" required value="${item.qty ?? ""}"></td><td><select class="pl-unit">${units.map(u=>"<option>"+esc(u)+"</option>").join("")}</select></td><td><input class="pl-inv" type="number" min="0" step="any" required value="${item.rateInv ?? ""}"></td><td><input class="pl-cash" type="number" min="0" step="any" value="${item.rateCash ?? 0}"></td><td><input class="pl-duty" type="number" min="0" step="any" value="${item.importDuty ?? 0}"></td><td><input class="pl-vat" type="number" min="0" max="100" step="any" value="${item.vatPct ?? data.settings.purchaseVatPct ?? 0}"></td><td><input class="pl-transport" type="number" min="0" step="any" value="${item.transport ?? 0}"></td><td><input class="pl-warehouse" type="number" min="0" step="any" value="${item.warehouse ?? 0}"></td><td><input class="pl-misc" type="number" min="0" step="any" value="${item.misc ?? 0}"></td><td class="pl-vat-total num">0.00</td><td class="pl-landed num">0.00</td><td><button type="button" class="small danger pl-remove">Remove</button></td>`;
+        document.getElementById("purchaseLinesBody").appendChild(row); row.querySelector(".pl-product").value=item.product||""; row.querySelector(".pl-unit").value=item.unit||(data.products.find(p=>p.name===item.product)||{}).unit||"kg";
+        row.querySelector(".pl-product").addEventListener("change",()=>{const unit=(data.products.find(p=>p.name===row.querySelector(".pl-product").value)||{}).unit;if(unit&&units.includes(unit))row.querySelector(".pl-unit").value=unit;updatePurchaseCostBreakdown();});
+        row.querySelectorAll("input,select").forEach(el=>el.addEventListener("input",updatePurchaseCostBreakdown));
+        row.querySelector(".pl-remove").onclick=()=>{if(document.querySelectorAll(".purchase-line").length>1){row.remove();updatePurchaseCostBreakdown();}else alert("Keep at least one product row in the purchase.");};
+        updatePurchaseCostBreakdown();
+      }
+      function updatePurchaseCostBreakdown(){
+        const rows=[...document.querySelectorAll(".purchase-line")], vals=rows.map(purchaseRowValues);
+        const sums={qty:0,invoice:0,cash:0,duty:0,vat:0,transport:0,warehouse:0,misc:0,landed:0};
+        rows.forEach((row,i)=>{const x=vals[i],vat=(x.qty*x.rateInv+x.importDuty)*x.vatPct/100,landed=x.qty*x.rateCash+x.importDuty+vat+x.transport+x.warehouse+x.misc;
+          row.querySelector(".pl-vat-total").textContent=money(vat,val("shCurrency")||"THB");row.querySelector(".pl-landed").textContent=money(landed,val("shCurrency")||"THB");
+          sums.qty+=x.qty;sums.invoice+=x.qty*x.rateInv;sums.cash+=x.qty*x.rateCash;sums.duty+=x.importDuty;sums.vat+=vat;sums.transport+=x.transport;sums.warehouse+=x.warehouse;sums.misc+=x.misc;sums.landed+=landed;
+        });
+        const labels=[["Total Quantity",qty(sums.qty)],["Total Invoice Value",money(sums.invoice,val("shCurrency")||"THB")],["Total Cash Value",money(sums.cash,val("shCurrency")||"THB")],["Total Import Duty",money(sums.duty,val("shCurrency")||"THB")],["Total VAT",money(sums.vat,val("shCurrency")||"THB")],["Total Transport",money(sums.transport,val("shCurrency")||"THB")],["Total Warehouse",money(sums.warehouse,val("shCurrency")||"THB")],["Total Miscellaneous Expenses",money(sums.misc,val("shCurrency")||"THB")]];
+        document.getElementById("purchaseTotals").innerHTML=labels.map(([l,v])=>`<div class="metric"><div class="label">${l}</div><div class="value">${v}</div></div>`).join("")+`<div class="purchase-grand-total"><div class="label">Total Landed Purchase Cost</div><strong>${money(sums.landed,val("shCurrency")||"THB")}</strong></div>`;
+      }
+      document.getElementById("addPurchaseLine").addEventListener("click",()=>addPurchaseLine());
+      document.getElementById("shCurrency").addEventListener("change",updatePurchaseCostBreakdown);
+      ["purchaseSearch","purchaseFrom","purchaseTo"].forEach(k=>document.getElementById(k).addEventListener("input",renderShipments));
+      addPurchaseLine();
+      ["shProduct","shQty","shUnit","shRateInv","shRateCash"].forEach(k=>{const el=document.getElementById(k);if(el){el.required=false;el.closest("div").style.display="none";}});
+      document.getElementById("shipmentForm").addEventListener("submit",e=>{
+        e.preventDefault();e.stopImmediatePropagation();if(purchaseSaving)return;purchaseSaving=true;
+        try {
+          const rows=[...document.querySelectorAll(".purchase-line")].map(purchaseRowValues), rid=val("shipmentId"), current=data.shipments.find(x=>String(x.id)===String(rid)), group=current?(current.purchaseGroupId||current.id):id(), oldGroup=data.shipments.filter(x=>(x.purchaseGroupId||x.id)===group);
+          if(!val("shDate")||rows.some(x=>!x.product||!x.unit||x.qty<=0||x.rateInv<0||x.rateCash<0||x.importDuty<0||x.vatPct<0||x.vatPct>100||x.transport<0||x.warehouse<0||x.misc<0)){showSaveMessage("shipment","Enter a date and complete each product row with valid quantities, rates and VAT from 0 to 100%.",false);return;}
+          const ref=val("shRef").trim();if(ref&&data.shipments.some(x=>x.ref&&x.ref.trim().toLowerCase()===ref.toLowerCase()&&(x.purchaseGroupId||x.id)!==group)){showSaveMessage("shipment","That purchase invoice number already exists. Open the existing invoice to edit it.",false);return;}
+          const oldByProduct=oldGroup.reduce((m,x)=>(m[x.product]??=[]).push(x),{}), retained=new Set();
+          for(const x of rows){const prev=(oldByProduct[x.product]||[]).find(y=>!retained.has(y.id)); if(prev){const sold=data.sales.filter(s=>String(s.shipmentId)===String(prev.id)).reduce((a,s)=>a+num(s.qty),0);if(x.qty<sold){showSaveMessage("shipment",`Quantity for ${x.product} cannot be less than the ${qty(sold)} already sold from this purchase.`,false);return;}retained.add(prev.id);x.id=prev.id;} }
+          for(const prev of oldGroup){if(!retained.has(prev.id)&&data.sales.some(s=>String(s.shipmentId)===String(prev.id))){showSaveMessage("shipment","This purchase line has linked sales and cannot be removed. Keep the line and its sold quantity.",false);return;}}
+          if(!current&&ref&&oldGroup.length){showSaveMessage("shipment","Open the existing invoice to add or edit its product rows.",false);return;}
+          const currency=val("shCurrency")||"THB", fxRate=num(val("shFx"))||fx(currency)||1;
+          data.shipments=data.shipments.filter(x=>(x.purchaseGroupId||x.id)!==group);
+          rows.forEach(x=>{const vat=(x.qty*x.rateInv+x.importDuty)*x.vatPct/100, landedCost=x.qty*x.rateCash+x.importDuty+vat+x.transport+x.warehouse+x.misc, rate=x.qty?landedCost/x.qty:0, product=data.products.find(p=>p.name===x.product);
+            data.shipments.push({id:x.id||id(),purchaseGroupId:group,date:val("shDate"),ref,product:x.product,unit:x.unit||product?.unit||"kg",qty:x.qty,rateInv:x.rateInv,rateCash:x.rateCash,rate:x.rate,currency,fx:fxRate,notes:val("shNotes").trim(),importDuty:x.importDuty,transportCharges:x.transport,clearanceCharges:x.warehouse,miscCharges:x.misc,vatPct:x.vatPct,vat,custom:readCustomFields("shipment")});
+          });
+          const saved=save();resetForm("shipment");renderAll();showSaveMessage("shipment",saved?"Purchase invoice saved with all product lines.":"Purchase saved in memory; download a backup before closing.",saved);
+        } finally {purchaseSaving=false;}
+      },true);
       document
         .getElementById("saleForm")
         .addEventListener("submit", (e) => handleTransactionSave(e, "sale"));
@@ -2700,6 +2535,9 @@
         .getElementById("addSaleLine")
         .addEventListener("click", () => addSaleLine());
       resetSaleLines();
+      setv("saDate",today());setv("saInvoiceNo",nextSaleInvoiceNo());updateSaleTotals();
+      ["saReceived","saTransport","saOther","saDueDate"].forEach(k=>document.getElementById(k).addEventListener("input",updateSaleTotals));
+      ["salesSearch","salesProductFilter","salesShipmentFilter","salesFrom","salesTo","salesStatusFilter"].forEach(k=>{const el=document.getElementById(k);el.addEventListener("input",renderSales);el.addEventListener("change",renderSales);});
       document
         .getElementById("dashShipmentSelect")
         .addEventListener("change", renderDashboardShipmentProfit);
