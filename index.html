@@ -565,7 +565,7 @@
             </div>
             <div id="purchaseBatchFields">
               <h3>Product line items</h3>
-              <div class="table-wrap"><table class="sale-table purchase-table"><thead><tr><th>Product</th><th>Quantity</th><th>Unit</th><th>Invoice rate</th><th>Cash rate</th><th>Import duty %</th><th>VAT rate %</th><th>Transport</th><th>Warehouse</th><th>Misc.</th><th>VAT</th><th>Landed total</th><th></th></tr></thead><tbody id="purchaseLinesBody"></tbody></table></div>
+              <div class="table-wrap"><table class="sale-table purchase-table"><thead><tr><th>Product</th><th>Quantity</th><th>Unit</th><th>Invoice rate</th><th>Cash rate</th><th>Import duty %</th><th>VAT rate %</th><th>Transport</th><th>Warehouse</th><th>Misc.</th><th>VAT</th><th>Grand Total</th><th></th></tr></thead><tbody id="purchaseLinesBody"></tbody></table></div>
               <div class="actions"><button type="button" id="addPurchaseLine">+ Add Product Row</button></div>
             </div>
             <div class="grid" style="display:none">
@@ -621,7 +621,7 @@
             </div>
             <h3>Product line items</h3>
             <p class="muted">Tax is added to the selling rate (tax exclusive). Additional sale costs are allocated by basic sales value for profit reporting and are not added to the customer invoice total.</p>
-            <div class="table-wrap" id="saleLines"><table class="sale-table" id="saleTable"><thead><tr><th>Product</th><th>Shipment / Invoice</th><th>Unit</th><th>Quantity</th><th>Rate</th><th>Tax %</th><th>Basic Amount</th><th>Tax Total</th><th>Line Total</th><th></th></tr></thead><tbody id="saleLinesBody"></tbody></table></div>
+            <div class="table-wrap" id="saleLines"><table class="sale-table" id="saleTable"><thead><tr><th>Product</th><th>Shipment / Invoice</th><th>Unit</th><th>Quantity</th><th>Rate</th><th>Tax %</th><th>Basic Amount</th><th>Tax Total</th><th>Grand Total</th><th></th></tr></thead><tbody id="saleLinesBody"></tbody></table></div>
             <div class="actions"><button type="button" id="addSaleLine">+ Add Product Row</button></div>
             <div class="grid sales-extras">
               <div><label>Delivery Location</label><input id="saLocation" /></div>
@@ -930,7 +930,7 @@
         customFields: [],
         dashboardCards: [
           { key: "purchase", label: "Purchase Goods Value", show: true },
-          { key: "landed", label: "Total Landed Cost", show: true },
+          { key: "landed", label: "Purchase Grand Total", show: true },
           { key: "revenue", label: "Sales Revenue", show: true },
           { key: "profit", label: "Estimated Net Profit / Loss", show: true },
           { key: "outstanding", label: "Sales Outstanding", show: true },
@@ -1077,9 +1077,9 @@
       function shipmentUnitCost(s) {
         const quantity = num(s.qty);
         if (!quantity) return 0;
-        // Landed cost uses invoice rate and purchase charges; cash rate is informational only.
+        // Cash rate is an additional per-unit purchase cost alongside invoice rate.
         if (s.rateInv === undefined) return num(s.rate);
-        return num(s.rateInv) + (num(s.importDuty) + num(s.vat) + num(s.transportCharges) + num(s.clearanceCharges) + num(s.miscCharges)) / quantity;
+        return num(s.rateInv) + rateCash(s) + (num(s.importDuty) + num(s.vat) + num(s.transportCharges) + num(s.clearanceCharges) + num(s.miscCharges)) / quantity;
       }
       function available(s) {
         return num(s.qty);
@@ -1097,7 +1097,7 @@
         return num(s.rateCash);
       }
       function purchaseDutyPct(s) {
-        const invoiceValue = num(s.qty) * rateInv(s);
+        const invoiceValue = num(s.qty) * (rateInv(s) + rateCash(s));
         return s.importDutyPct !== undefined
           ? num(s.importDutyPct)
           : invoiceValue > 0
@@ -1200,7 +1200,7 @@
         const saleGroups=[...new Set(data.sales.map(s=>String(saleGroup(s))))];
         const receivable=saleGroups.reduce((a,g)=>{const rows=saleGroupRows(g),first=rows[0],paid=rows.reduce((n,s)=>n+num(s.received),0);return a+Math.max(0,saleInvoiceTotal(rows)-paid)*(num(first?.fx)||1);},0);
         let purchase = data.shipments.reduce(
-          (a, s) => a + num(s.qty) * rateInv(s) * num(s.fx),
+          (a, s) => a + num(s.qty) * (rateInv(s) + rateCash(s)) * num(s.fx),
           0,
         );
         let land = data.shipments.reduce((a, s) => a + landed(s) * num(s.fx), 0);
@@ -1325,7 +1325,7 @@
         const query=(document.getElementById("purchaseSearch")?.value||"").trim().toLocaleLowerCase();
         const from=document.getElementById("purchaseFrom")?.value||"", to=document.getElementById("purchaseTo")?.value||"";
         const visible=data.shipments.filter(s=>{const text=[s.ref,s.product,s.supplier].join(" ").toLocaleLowerCase();return (!query||text.includes(query))&&(!from||s.date>=from)&&(!to||s.date<=to);});
-        document.getElementById("shipmentsTable").innerHTML=table(["Purchase Invoice No.","Date","Product","Quantity","Unit","Invoice Rate","Cash Rate","Import Duty %","Import Duty Amount","VAT","Transport","Warehouse","Miscellaneous","Landed Cost","Notes","Actions"],visible.map(s=>`<tr><td>${esc(s.ref||"?")}</td><td>${esc(s.date)}</td><td>${esc(s.product)}</td><td>${qty(s.qty)}</td><td>${esc(s.unit||(data.products.find(p=>p.name===s.product)||{}).unit||"kg")}</td><td>${money(rateInv(s),s.currency)}</td><td>${money(rateCash(s),s.currency)}</td><td>${qty(purchaseDutyPct(s))}%</td><td>${money(s.importDuty,s.currency)}</td><td>${money(s.vat,s.currency)}</td><td>${money(s.transportCharges,s.currency)}</td><td>${money(s.clearanceCharges,s.currency)}</td><td>${money(s.miscCharges,s.currency)}</td><td><strong>${money(landed(s),s.currency)}</strong></td><td>${esc(s.notes||"")}</td><td class="actions">${actions("shipment",s)}</td></tr>`));
+        document.getElementById("shipmentsTable").innerHTML=table(["Purchase Invoice No.","Date","Product","Quantity","Unit","Invoice Rate","Cash Rate","Import Duty %","Import Duty Amount","VAT","Transport","Warehouse","Miscellaneous","Grand Total","Notes","Actions"],visible.map(s=>`<tr><td>${esc(s.ref||"?")}</td><td>${esc(s.date)}</td><td>${esc(s.product)}</td><td>${qty(s.qty)}</td><td>${esc(s.unit||(data.products.find(p=>p.name===s.product)||{}).unit||"kg")}</td><td>${money(rateInv(s),s.currency)}</td><td>${money(rateCash(s),s.currency)}</td><td>${qty(purchaseDutyPct(s))}%</td><td>${money(s.importDuty,s.currency)}</td><td>${money(s.vat,s.currency)}</td><td>${money(s.transportCharges,s.currency)}</td><td>${money(s.clearanceCharges,s.currency)}</td><td>${money(s.miscCharges,s.currency)}</td><td><strong>${money(landed(s),s.currency)}</strong></td><td>${esc(s.notes||"")}</td><td class="actions">${actions("shipment",s)}</td></tr>`));
         refreshSaleLineShipmentOptions();
       }
       function saleProfit(s) {
@@ -1390,14 +1390,14 @@
           const sh=data.shipments.find(x=>String(x.id)===String(s.shipmentId)), group=saleGroupRows(saleGroup(s)), basic=round2(num(s.qty)*num(s.rate)), tax=round2(s.taxAmt!==undefined?num(s.taxAmt):basic*num(s.taxPct)/100), lineGrand=round2(basic+tax), paid=num(s.received), due=Math.max(0,lineGrand-paid), status=salePaymentStatus(group);
           return `<tr><td>${esc(s.date)}</td><td>${esc(s.invoiceNo||"Legacy sale")}</td><td>${esc(s.buyer)}</td><td>${esc(s.product)}</td><td>${esc(sh?sh.ref||"Purchase "+String(sh.id).slice(-6):"Not linked")}</td><td>${esc(s.unit||(sh&&sh.unit)||(data.products.find(p=>p.name===s.product)||{}).unit||"kg")}</td><td>${qty(s.qty)}</td><td>${money(s.rate,s.currency)}</td><td>${num(s.taxPct)}%</td><td>${money(basic,s.currency)}</td><td>${money(tax,s.currency)}</td><td>${money(lineGrand,s.currency)}</td><td>${money(num(s.transport),s.currency)}</td><td>${money(num(s.other),s.currency)}</td><td>${money(paid,s.currency)}</td><td>${money(due,s.currency)}${paid>lineGrand+0.01?` ? Credit ${money(paid-lineGrand,s.currency)}`:""}</td><td>${esc(s.paymentDueDate||"?")}</td><td>${status}</td><td class="actions">${saleActions(s)}</td></tr>`;
         });
-        document.getElementById("salesTable").innerHTML=table(["Date","Sales Invoice No.","Selling Party","Product","Shipment / Invoice","Unit","Quantity","Rate","Tax %","Basic Amount","Tax Total","Line Total","Allocated Delivery Cost","Allocated Misc. Cost","Payment Received","Outstanding","Due Date","Payment Status","Actions"],rows);
+        document.getElementById("salesTable").innerHTML=table(["Date","Sales Invoice No.","Selling Party","Product","Shipment / Invoice","Unit","Quantity","Rate","Tax %","Basic Amount","Tax Total","Grand Total","Allocated Delivery Cost","Allocated Misc. Cost","Payment Received","Outstanding","Due Date","Payment Status","Actions"],rows);
       }
       function viewSaleInvoice(groupId) {
         const rows=saleGroupRows(groupId);if(!rows.length)return;
         const first=rows[0],grand=saleInvoiceTotal(rows),paid=rows.reduce((a,s)=>a+num(s.received),0),status=salePaymentStatus(rows);
         document.getElementById("saleInvoiceTitle").textContent=`Invoice ${first.invoiceNo||"(legacy)"} ? ${first.buyer} ? ${first.date}`;
         const details=rows.map(s=>{const sh=data.shipments.find(x=>String(x.id)===String(s.shipmentId)),basic=num(s.qty)*num(s.rate),tax=s.taxAmt!==undefined?num(s.taxAmt):basic*num(s.taxPct)/100;return `<tr><td>${esc(s.product)}</td><td>${esc(sh?.ref||"Not linked")}</td><td>${esc(s.unit||(sh&&sh.unit)||(data.products.find(p=>p.name===s.product)||{}).unit||"kg")}</td><td>${qty(s.qty)}</td><td>${money(s.rate,s.currency)}</td><td>${money(basic,s.currency)}</td><td>${num(s.taxPct)}%</td><td>${money(tax,s.currency)}</td><td>${money(basic+tax,s.currency)}</td></tr>`;});details.push(`<tr class="total-row"><td colspan="4">Invoice total | Paid ${money(paid,first.currency)} | Outstanding ${money(Math.max(0,grand-paid),first.currency)} | ${status} | Due ${esc(first.paymentDueDate||"not set")}</td><td colspan="5">Delivery ${money(rows.reduce((a,s)=>a+num(s.transport),0),first.currency)} | Misc. ${money(rows.reduce((a,s)=>a+num(s.other),0),first.currency)}</td></tr>`);
-        document.getElementById("saleInvoiceDetails").innerHTML=table(["Product","Shipment / Invoice","Unit","Quantity","Rate","Basic","Tax %","Tax","Line Total"],details);
+        document.getElementById("saleInvoiceDetails").innerHTML=table(["Product","Shipment / Invoice","Unit","Quantity","Rate","Basic","Tax %","Tax","Grand Total"],details);
         const card=document.getElementById("saleInvoiceView");card.style.display="block";card.scrollIntoView({behavior:"smooth",block:"nearest"});
       }
       function recordSalePayment(groupId) {
@@ -2225,13 +2225,13 @@
       }
       function updatePurchaseCostBreakdown(){
         const rows=[...document.querySelectorAll(".purchase-line")], vals=rows.map(purchaseRowValues);
-        const sums={qty:0,invoice:0,duty:0,vat:0,transport:0,warehouse:0,misc:0,landed:0};
-        rows.forEach((row,i)=>{const x=vals[i],duty=x.qty*x.rateInv*x.importDutyPct/100,vat=(x.qty*x.rateInv+duty)*x.vatPct/100,landed=x.qty*x.rateInv+duty+vat+x.transport+x.warehouse+x.misc;
+        const sums={qty:0,invoice:0,cash:0,duty:0,vat:0,transport:0,warehouse:0,misc:0,landed:0};
+        rows.forEach((row,i)=>{const x=vals[i],purchaseValue=x.qty*(x.rateInv+x.rateCash),duty=purchaseValue*x.importDutyPct/100,vat=(purchaseValue+duty)*x.vatPct/100,landed=purchaseValue+duty+vat+x.transport+x.warehouse+x.misc;
           row.querySelector(".pl-vat-total").textContent=money(vat,val("shCurrency")||"THB");row.querySelector(".pl-landed").textContent=money(landed,val("shCurrency")||"THB");
-          sums.qty+=x.qty;sums.invoice+=x.qty*x.rateInv;sums.duty+=duty;sums.vat+=vat;sums.transport+=x.transport;sums.warehouse+=x.warehouse;sums.misc+=x.misc;sums.landed+=landed;
+          sums.qty+=x.qty;sums.invoice+=x.qty*x.rateInv;sums.cash+=x.qty*x.rateCash;sums.duty+=duty;sums.vat+=vat;sums.transport+=x.transport;sums.warehouse+=x.warehouse;sums.misc+=x.misc;sums.landed+=landed;
         });
-        const labels=[["Total Quantity",qty(sums.qty)],["Total Invoice Value",money(sums.invoice,val("shCurrency")||"THB")],["Total Import Duty",money(sums.duty,val("shCurrency")||"THB")],["Total VAT",money(sums.vat,val("shCurrency")||"THB")],["Total Transport",money(sums.transport,val("shCurrency")||"THB")],["Total Warehouse",money(sums.warehouse,val("shCurrency")||"THB")],["Total Miscellaneous Expenses",money(sums.misc,val("shCurrency")||"THB")]];
-        document.getElementById("purchaseTotals").innerHTML=labels.map(([l,v])=>`<div class="metric"><div class="label">${l}</div><div class="value">${v}</div></div>`).join("")+`<div class="purchase-grand-total"><div class="label">Total Landed Purchase Cost</div><strong>${money(sums.landed,val("shCurrency")||"THB")}</strong></div>`;
+        const labels=[["Total Quantity",qty(sums.qty)],["Total Invoice Value",money(sums.invoice,val("shCurrency")||"THB")],["Total Cash Value",money(sums.cash,val("shCurrency")||"THB")],["Total Import Duty",money(sums.duty,val("shCurrency")||"THB")],["Total VAT",money(sums.vat,val("shCurrency")||"THB")],["Total Transport",money(sums.transport,val("shCurrency")||"THB")],["Total Warehouse",money(sums.warehouse,val("shCurrency")||"THB")],["Total Miscellaneous Expenses",money(sums.misc,val("shCurrency")||"THB")]];
+        document.getElementById("purchaseTotals").innerHTML=labels.map(([l,v])=>`<div class="metric"><div class="label">${l}</div><div class="value">${v}</div></div>`).join("")+`<div class="purchase-grand-total"><div class="label">Grand Total</div><strong>${money(sums.landed,val("shCurrency")||"THB")}</strong></div>`;
       }
       document.getElementById("addPurchaseLine").addEventListener("click",()=>addPurchaseLine());
       document.getElementById("shCurrency").addEventListener("change",updatePurchaseCostBreakdown);
@@ -2250,7 +2250,7 @@
           if(!current&&ref&&oldGroup.length){showSaveMessage("shipment","Open the existing invoice to add or edit its product rows.",false);return;}
           const currency=val("shCurrency")||"THB", fxRate=num(val("shFx"))||fx(currency)||1;
           data.shipments=data.shipments.filter(x=>(x.purchaseGroupId||x.id)!==group);
-          rows.forEach(x=>{const importDuty=x.qty*x.rateInv*x.importDutyPct/100,vat=(x.qty*x.rateInv+importDuty)*x.vatPct/100, landedCost=x.qty*x.rateInv+importDuty+vat+x.transport+x.warehouse+x.misc, rate=x.qty?landedCost/x.qty:0, product=data.products.find(p=>p.name===x.product);
+          rows.forEach(x=>{const purchaseValue=x.qty*(x.rateInv+x.rateCash),importDuty=purchaseValue*x.importDutyPct/100,vat=(purchaseValue+importDuty)*x.vatPct/100, landedCost=purchaseValue+importDuty+vat+x.transport+x.warehouse+x.misc, rate=x.qty?landedCost/x.qty:0, product=data.products.find(p=>p.name===x.product);
             data.shipments.push({id:x.id||id(),purchaseGroupId:group,date:val("shDate"),ref,product:x.product,unit:x.unit||product?.unit||"kg",qty:x.qty,rateInv:x.rateInv,rateCash:x.rateCash,rate:x.rate,currency,fx:fxRate,notes:val("shNotes").trim(),importDutyPct:x.importDutyPct,importDuty,transportCharges:x.transport,clearanceCharges:x.warehouse,miscCharges:x.misc,vatPct:x.vatPct,vat,custom:readCustomFields("shipment")});
           });
           const saved=save();resetForm("shipment");renderAll();showSaveMessage("shipment",saved?"Purchase invoice saved with all product lines.":"Purchase saved in memory; download a backup before closing.",saved);
@@ -2527,9 +2527,13 @@
             ["Landed Rate", "m"],
             ["Cur", "t"],
             ["Invoice Value (THB)", "m"],
+            ["Cash Value (THB)", "m"],
+            ["Landed Value (THB)", "m"],
           ];
           const R = ships.map((x) => {
-            const inv = rpT(num(x.qty) * rateInv(x) * num(x.fx));
+            const inv = rpT(num(x.qty) * rateInv(x) * num(x.fx)),
+              cash = rpT(num(x.qty) * rateCash(x) * num(x.fx)),
+              totalLanded = rpT(landed(x) * num(x.fx));
             return [
               x.date,
               x.ref || "",
@@ -2541,13 +2545,15 @@
               shipmentUnitCost(x),
               x.currency,
               inv,
+              cash,
+              totalLanded,
             ];
           });
           tables.push({
             name: "Purchases",
             H,
             R,
-            F: R.length ? [rpSumRow(R, [3, 9], H.length, "Total")] : [],
+            F: R.length ? [rpSumRow(R, [3, 9, 10, 11], H.length, "Total")] : [],
           });
         } else if (kind === "profitProduct") {
           title = "Profit by Product";
