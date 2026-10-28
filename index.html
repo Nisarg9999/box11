@@ -2226,7 +2226,7 @@
       function updatePurchaseCostBreakdown(){
         const rows=[...document.querySelectorAll(".purchase-line")], vals=rows.map(purchaseRowValues);
         const sums={qty:0,invoice:0,cash:0,duty:0,vat:0,transport:0,warehouse:0,misc:0,landed:0};
-        rows.forEach((row,i)=>{const x=vals[i],purchaseValue=x.qty*(x.rateInv+x.rateCash),duty=purchaseValue*x.importDutyPct/100,vat=(purchaseValue+duty)*x.vatPct/100,landed=purchaseValue+duty+vat+x.transport+x.warehouse+x.misc;
+        rows.forEach((row,i)=>{const x=vals[i],invoiceValue=x.qty*x.rateInv,duty=invoiceValue*x.importDutyPct/100,vat=invoiceValue*x.vatPct/100,landed=invoiceValue+duty+vat+x.qty*x.rateCash+x.transport+x.warehouse+x.misc;
           row.querySelector(".pl-vat-total").textContent=money(vat,val("shCurrency")||"THB");row.querySelector(".pl-landed").textContent=money(landed,val("shCurrency")||"THB");
           sums.qty+=x.qty;sums.invoice+=x.qty*x.rateInv;sums.cash+=x.qty*x.rateCash;sums.duty+=duty;sums.vat+=vat;sums.transport+=x.transport;sums.warehouse+=x.warehouse;sums.misc+=x.misc;sums.landed+=landed;
         });
@@ -2250,7 +2250,7 @@
           if(!current&&ref&&oldGroup.length){showSaveMessage("shipment","Open the existing invoice to add or edit its product rows.",false);return;}
           const currency=val("shCurrency")||"THB", fxRate=num(val("shFx"))||fx(currency)||1;
           data.shipments=data.shipments.filter(x=>(x.purchaseGroupId||x.id)!==group);
-          rows.forEach(x=>{const purchaseValue=x.qty*(x.rateInv+x.rateCash),importDuty=purchaseValue*x.importDutyPct/100,vat=(purchaseValue+importDuty)*x.vatPct/100, landedCost=purchaseValue+importDuty+vat+x.transport+x.warehouse+x.misc, rate=x.qty?landedCost/x.qty:0, product=data.products.find(p=>p.name===x.product);
+          rows.forEach(x=>{const invoiceValue=x.qty*x.rateInv,importDuty=invoiceValue*x.importDutyPct/100,vat=invoiceValue*x.vatPct/100, landedCost=invoiceValue+importDuty+vat+x.qty*x.rateCash+x.transport+x.warehouse+x.misc, rate=x.qty?landedCost/x.qty:0, product=data.products.find(p=>p.name===x.product);
             data.shipments.push({id:x.id||id(),purchaseGroupId:group,date:val("shDate"),ref,product:x.product,unit:x.unit||product?.unit||"kg",qty:x.qty,rateInv:x.rateInv,rateCash:x.rateCash,rate:x.rate,currency,fx:fxRate,notes:val("shNotes").trim(),importDutyPct:x.importDutyPct,importDuty,transportCharges:x.transport,clearanceCharges:x.warehouse,miscCharges:x.misc,vatPct:x.vatPct,vat,custom:readCustomFields("shipment")});
           });
           const saved=save();resetForm("shipment");renderAll();showSaveMessage("shipment",saved?"Purchase invoice saved with all product lines.":"Purchase saved in memory; download a backup before closing.",saved);
